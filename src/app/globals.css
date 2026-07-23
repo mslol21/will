@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 92%; /* #F2ECE2 */
+    --foreground: 220 37% 19%; /* #1F2A44 */
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-montserrat), sans-serif;
+  }
+
+  body {
+    background-color: #F2ECE2;
+    color: #1F2A44;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-playfair), Georgia, serif;
+  }
+}
+
+/* Custom Utilities for Premium Artisanal Look */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #B88E34 50%, #8C6B21 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #B88E34 100%);
+}
+
+.bg-kraft-texture {
+  background-color: #F7F1E5;
+  background-image: radial-gradient(#D2B48C 0.6px, transparent 0.6px);
+  background-size: 16px 16px;
+}
+
+.glass-nav {
+  background: rgba(31, 42, 68, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(184, 142, 52, 0.15);
+}
+
+.gold-border {
+  border: 1px solid rgba(184, 142, 52, 0.3);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F2ECE2;
+}
+::-webkit-scrollbar-thumb {
+  background: #B88E34;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8C6B21;
+}
