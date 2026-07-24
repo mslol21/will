@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SearchModal } from "@/components/product/SearchModal";
 import { HeroSection } from "@/sections/home/HeroSection";
+import { ExperienceSection } from "@/sections/home/ExperienceSection";
 import { StorySection } from "@/sections/home/StorySection";
 import { CategoriesSection } from "@/sections/home/CategoriesSection";
 import { FeaturedSection } from "@/sections/home/FeaturedSection";
@@ -20,12 +21,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-emporio-beige flex flex-col selection:bg-emporio-gold selection:text-emporio-navy">
-      {/* Navigation */}
+      {/* Clean Navigation Bar */}
       <Navbar onOpenSearch={() => setIsSearchOpen(true)} />
 
       {/* Main Home Content */}
       <main className="flex-grow">
         <HeroSection />
+        <ExperienceSection />
         <StorySection />
         <CategoriesSection />
         <FeaturedSection />
@@ -37,7 +39,7 @@ export default function HomePage() {
         <LocationSection />
       </main>
 
-      {/* Footer */}
+      {/* Institutional Dark Footer */}
       <Footer />
 
       {/* Instant Search Popover */}

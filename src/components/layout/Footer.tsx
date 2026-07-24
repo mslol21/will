@@ -13,8 +13,7 @@ import {
   MessageCircle, 
   Send,
   Heart,
-  ShieldCheck,
-  Award
+  ShieldCheck
 } from "lucide-react";
 import { INITIAL_STORE_SETTINGS } from "@/lib/mockData";
 import { createWhatsAppLink } from "@/lib/utils";
@@ -34,27 +33,53 @@ export function Footer() {
 
   const whatsappUrl = createWhatsAppLink(
     INITIAL_STORE_SETTINGS.whatsappNumber,
-    "Olá! Gostaria de tirar uma dúvida sobre o Empório Caminho da Fé."
+    "Olá! Gostaria de tirar uma dúvida com o Empório Caminho da Fé."
   );
 
   return (
-    <footer className="bg-emporio-navy-dark text-slate-300 pt-16 pb-8 border-t-2 border-emporio-gold/30">
+    <footer id="contato" className="bg-[#1F2A44] text-slate-300 pt-16 pb-8 border-t-4 border-[#8B5E34]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Banner com o Slogan Exato: "Mais que uma loja, um lugar de encontro, fé e boas histórias." */}
+        <div className="bg-[#141C2E] rounded-3xl p-8 mb-14 border border-[#D2B48C]/30 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left shadow-xl">
+          <div>
+            <div className="flex items-center justify-center md:justify-start gap-2 text-[#D2B48C] mb-1">
+              <Sparkles className="w-4 h-4 text-[#D2B48C]" />
+              <span className="font-bold text-xs uppercase tracking-widest font-montserrat">Essência do Empório</span>
+            </div>
+            <h3 className="font-playfair text-2xl sm:text-3xl font-extrabold text-white">
+              &quot;Mais que uma loja, um lugar de encontro, fé e boas histórias.&quot;
+            </h3>
+          </div>
+
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-8 py-3.5 rounded-full bg-[#8B5E34] hover:bg-[#D2B48C] hover:text-[#1F2A44] text-white font-montserrat font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 transition-all shrink-0"
+          >
+            Falar no WhatsApp
+          </a>
+        </div>
+
+        {/* Grade do Rodapé */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-white/10">
           
-          {/* Brand Info */}
+          {/* Coluna 1: Informações da Marca */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emporio-gold to-emporio-gold-dark flex items-center justify-center text-emporio-navy shadow-gold">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-full bg-[#8B5E34] text-[#F2ECE2] flex items-center justify-center shadow-md">
+                <Sparkles className="w-5 h-5 text-[#D2B48C]" />
               </div>
               <span className="font-playfair text-2xl font-bold text-white tracking-wide">
                 Caminho da Fé
               </span>
             </Link>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Sabores autênticos da gastronomia mineira, queijos artesanais de leite cru, cafés especiais de alta altitude e artigos abençoados para a sua caminhada.
+            <p className="font-montserrat text-xs text-slate-300 leading-relaxed font-light">
+              Gastronomia artesanal mineira, queijos de leite cru maturados, cafés especiais de altitude e presentes repleto de devoção.
             </p>
+
+            {/* Redes Sociais */}
             <div className="flex items-center gap-3 pt-2">
               <a
                 href={whatsappUrl}
@@ -69,7 +94,7 @@ export function Footer() {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-emporio-gold/20 text-emporio-gold hover:bg-emporio-gold hover:text-emporio-navy flex items-center justify-center transition-colors"
+                className="w-9 h-9 rounded-full bg-[#D2B48C]/20 text-[#D2B48C] hover:bg-[#D2B48C] hover:text-[#1F2A44] flex items-center justify-center transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="w-4 h-4" />
@@ -86,68 +111,65 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Coluna 2: Links Rápido */}
           <div>
-            <h4 className="font-playfair text-lg font-semibold text-white mb-4 text-emporio-gold">
-              Navegação Rápida
+            <h4 className="font-playfair text-lg font-semibold text-[#D2B48C] mb-4">
+              Links Rápidos
             </h4>
-            <ul className="space-y-2.5 text-xs">
+            <ul className="space-y-2.5 font-montserrat text-xs font-medium">
               <li>
-                <Link href="/" className="hover:text-emporio-gold transition-colors">
-                  Página Inicial
+                <Link href="/" className="hover:text-[#D2B48C] transition-colors">
+                  Home
                 </Link>
               </li>
               <li>
-                <Link href="/produtos" className="hover:text-emporio-gold transition-colors">
-                  Catálogo Completo de Produtos
+                <Link href="/produtos" className="hover:text-[#D2B48C] transition-colors">
+                  Nossos Produtos
                 </Link>
               </li>
               <li>
-                <Link href="/montar-cesta" className="hover:text-emporio-gold transition-colors">
-                  Montar Cesta Personalizada
+                <Link href="/#caminho" className="hover:text-[#D2B48C] transition-colors">
+                  O Caminho
                 </Link>
               </li>
               <li>
-                <Link href="/#historia" className="hover:text-emporio-gold transition-colors">
-                  Nossa História & Tradição
+                <Link href="/#historia" className="hover:text-[#D2B48C] transition-colors">
+                  Nossa História
                 </Link>
               </li>
               <li>
-                <Link href="/#peregrino" className="hover:text-emporio-gold transition-colors">
-                  Linha Peregrino & Fé
+                <Link href="/#oracao" className="hover:text-[#D2B48C] transition-colors">
+                  Pedidos de Oração Online
                 </Link>
               </li>
               <li>
-                <Link href="/admin" className="hover:text-emporio-gold transition-colors flex items-center gap-1.5">
-                  <span>Painel Administrativo</span>
-                  <span className="px-1.5 py-0.5 text-[9px] bg-emporio-gold/20 text-emporio-gold rounded">
-                    Admin
-                  </span>
+                <Link href="/admin" className="hover:text-[#D2B48C] transition-colors flex items-center gap-1.5">
+                  <span>Minha Conta / Admin</span>
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Location & Hours */}
+          {/* Coluna 3: Informações de Contato */}
           <div>
-            <h4 className="font-playfair text-lg font-semibold text-white mb-4 text-emporio-gold">
-              Atendimento & Visita
+            <h4 className="font-playfair text-lg font-semibold text-[#D2B48C] mb-4">
+              Contato & Visita
             </h4>
-            <ul className="space-y-3 text-xs">
+            <ul className="space-y-3 font-montserrat text-xs">
               <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-emporio-gold shrink-0 mt-0.5" />
+                <MapPin className="w-4 h-4 text-[#D2B48C] shrink-0 mt-0.5" />
                 <span>{INITIAL_STORE_SETTINGS.address} - {INITIAL_STORE_SETTINGS.cityState}</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-emporio-gold shrink-0" />
+                <Phone className="w-4 h-4 text-[#D2B48C] shrink-0" />
                 <span>{INITIAL_STORE_SETTINGS.phone} / {INITIAL_STORE_SETTINGS.whatsappFormatted}</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-emporio-gold shrink-0" />
+                <Mail className="w-4 h-4 text-[#D2B48C] shrink-0" />
                 <span>{INITIAL_STORE_SETTINGS.email}</span>
               </li>
               <li className="flex items-start gap-2.5 pt-1">
-                <Clock className="w-4 h-4 text-emporio-gold shrink-0 mt-0.5" />
+                <Clock className="w-4 h-4 text-[#D2B48C] shrink-0 mt-0.5" />
                 <div>
                   <p>Seg a Sex: {INITIAL_STORE_SETTINGS.businessHours.weekdays}</p>
                   <p>Sáb: {INITIAL_STORE_SETTINGS.businessHours.saturday}</p>
@@ -157,18 +179,18 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Newsletter */}
+          {/* Coluna 4: Newsletter */}
           <div>
-            <h4 className="font-playfair text-lg font-semibold text-white mb-4 text-emporio-gold">
+            <h4 className="font-playfair text-lg font-semibold text-[#D2B48C] mb-4">
               Clube do Empório
             </h4>
-            <p className="text-xs text-slate-300 mb-4 leading-relaxed">
-              Receba ofertas exclusivas, avisos de novos lotes de queijos maturados e novidades do Caminho da Fé.
+            <p className="font-montserrat text-xs text-slate-300 mb-4 leading-relaxed font-light">
+              Receba novidades dos lotes de queijos maturados e bênçãos do Caminho da Fé.
             </p>
             {subscribed ? (
-              <div className="p-3 bg-emerald-950/60 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs flex items-center gap-2">
+              <div className="p-3 bg-emerald-950/60 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs font-montserrat flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Obrigado! Seu e-mail foi cadastrado com sucesso.</span>
+                <span>E-mail cadastrado com sucesso!</span>
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="space-y-2">
@@ -179,11 +201,11 @@ export function Footer() {
                     placeholder="Seu melhor e-mail"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-3 pr-10 py-2.5 bg-white/5 border border-white/15 rounded-xl text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-emporio-gold transition-colors"
+                    className="w-full pl-3 pr-10 py-2.5 bg-white/5 border border-white/15 rounded-xl text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-[#D2B48C] font-montserrat"
                   />
                   <button
                     type="submit"
-                    className="absolute right-1 top-1 bottom-1 px-3 bg-emporio-gold hover:bg-emporio-gold-dark text-emporio-navy rounded-lg transition-colors flex items-center justify-center"
+                    className="absolute right-1 top-1 bottom-1 px-3 bg-[#8B5E34] hover:bg-[#D2B48C] hover:text-[#1F2A44] text-white rounded-lg transition-colors flex items-center justify-center"
                     aria-label="Enviar"
                   >
                     <Send className="w-3.5 h-3.5" />
@@ -191,29 +213,19 @@ export function Footer() {
                 </div>
               </form>
             )}
-
-            <div className="mt-6 flex items-center gap-3 pt-2">
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                <Award className="w-3.5 h-3.5 text-emporio-gold" />
-                <span>Artesanal de Minas</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-emporio-gold" />
-                <span>Garantia de Origem</span>
-              </div>
-            </div>
           </div>
 
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        {/* Selo de Direitos Autorais */}
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-montserrat text-xs text-slate-400">
           <p>© {new Date().getFullYear()} Empório Caminho da Fé. Todos os direitos reservados.</p>
           <p className="flex items-center gap-1">
-            <span>Desenvolvido com carinho e fé em Minas Gerais</span>
+            <span>Feito com carinho e fé em Minas Gerais</span>
             <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
           </p>
         </div>
+
       </div>
     </footer>
   );

@@ -2,115 +2,66 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Sparkles, Heart, Compass, Shield, Award } from "lucide-react";
-import { TIMELINE_EVENTS } from "@/lib/mockData";
+import { Sparkles, Heart } from "lucide-react";
 
 export function StorySection() {
   return (
-    <section id="historia" className="py-24 bg-emporio-beige relative overflow-hidden">
-      {/* Background Subtle Kraft Texture */}
-      <div className="absolute inset-0 opacity-40 bg-kraft-texture pointer-events-none" />
-
+    <section id="historia" className="py-24 bg-[#F2ECE2] relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="inline-block px-3 py-1 rounded-full bg-emporio-gold/20 text-emporio-gold-dark text-xs font-bold uppercase tracking-widest mb-3">
-            Tradição & Acolhimento
-          </span>
-          <h2 className="font-playfair text-3xl sm:text-5xl font-bold text-emporio-navy mb-4">
-            Onde Minas Gerais Encontra a Fé
-          </h2>
-          <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
-            Mais que um empório de sabores, um refúgio de descanso, memórias afetivas e hospitalidade genuína nas montanhas da Mantiqueira.
-          </p>
-        </div>
-
-        {/* Story Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
-          {/* Left Image Showcase */}
-          <div className="relative">
-            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
+        {/* Layout em 2 Colunas no Desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          
+          {/* Coluna 1: Imagem do selo da marca (/images/selo-emblem.jpg) em formato circular/suave com sombra */}
+          <div className="lg:col-span-5 flex justify-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="relative w-64 h-64 sm:w-80 sm:h-80 rounded-full overflow-hidden shadow-2xl border-4 border-[#D2B48C] bg-[#1F2A44] flex items-center justify-center p-2"
+            >
               <Image
-                src="https://images.unsplash.com/photo-1558001373-7b93ee48ffa0?auto=format&fit=crop&w=1200&q=80"
-                alt="Empório Caminho da Fé Loja Física"
+                src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80"
+                alt="Selo do Empório Caminho da Fé"
                 fill
-                className="object-cover"
+                className="object-cover rounded-full p-2"
               />
-            </div>
-            
-            {/* Floating Quote Card */}
-            <div className="absolute -bottom-6 -right-2 sm:bottom-6 sm:right-6 bg-emporio-navy text-white p-6 rounded-2xl max-w-xs shadow-xl border border-emporio-gold/30 hidden sm:block">
-              <Sparkles className="w-6 h-6 text-emporio-gold mb-2" />
-              <p className="font-playfair text-sm italic leading-relaxed text-slate-200">
-                &quot;Cada cafezinho passado no coador de pano é um abraço e uma oração para quem caminha.&quot;
-              </p>
-            </div>
+              <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#D2B48C]/60 pointer-events-none" />
+            </motion.div>
           </div>
 
-          {/* Right Text Content */}
-          <div className="space-y-6">
-            <h3 className="font-playfair text-2xl sm:text-3xl font-bold text-emporio-navy">
-              Uma Jornada Nascida do Amor e da Devoção
-            </h3>
-            <p className="text-sm text-slate-700 leading-relaxed">
-              O **Empório Caminho da Fé** nasceu à beira da rota sagrada de peregrinação. Nossos fundadores, nascidos em famílias de mestres queijeiros e cafeicultores de altitude, começaram abrindo a porta de casa para oferecer água fresca, café quente e broa de milho aos caminhantes.
-            </p>
-            <p className="text-sm text-slate-700 leading-relaxed">
-              Hoje, preservamos o mesmo espírito: curadoria rigorosa de pequenos produtores artesanais mineiros, respeitando o tempo de maturação dos queijos, a torra artesanal do café e a sacralidade dos símbolos de devoção.
+          {/* Coluna 2: Título "Da Fé Nasceu um Sonho", texto institucional e a frase em destaque */}
+          <div className="lg:col-span-7 space-y-6">
+            <span className="inline-block px-3.5 py-1.5 rounded-full bg-[#8B5E34]/15 text-[#8B5E34] text-xs font-bold uppercase tracking-widest font-montserrat">
+              Nossa História & Essência
+            </span>
+
+            <h2 className="font-playfair text-3xl sm:text-5xl font-bold text-[#1F2A44]">
+              Da Fé Nasceu um Sonho
+            </h2>
+
+            <p className="font-montserrat text-sm sm:text-base text-[#2E2E2E] leading-relaxed">
+              O **Empório Caminho da Fé** nasceu à beira da rota sagrada de peregrinação, fruto do amor pela terra mineira e pela acolhida fraterna. O que começou com a partilha de um café fresco assado na lenha e de um pedaço de queijo Canastra maturado para os caminhantes, transformou-se em um refúgio de resgate cultural, espiritual e gastronômico.
             </p>
 
-            {/* Mission & Values Pills */}
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="p-4 rounded-2xl bg-white/80 border border-emporio-gold/20 shadow-sm">
-                <div className="w-8 h-8 rounded-lg bg-emporio-gold/20 text-emporio-gold-dark flex items-center justify-center mb-2">
-                  <Heart className="w-4 h-4" />
-                </div>
-                <h4 className="font-playfair font-semibold text-sm text-emporio-navy mb-1">Acolhimento</h4>
-                <p className="text-[11px] text-slate-600">Tratamos cada cliente como um visitante de nossa casa.</p>
-              </div>
+            <p className="font-montserrat text-sm sm:text-base text-[#2E2E2E] leading-relaxed">
+              Trabalhamos exclusivamente com mestres queijeiros, cafeicultores de alta altitude da Mantiqueira e artesãos locais que dedicam suas vidas à preservação das receitas ancestrais da família mineira.
+            </p>
 
-              <div className="p-4 rounded-2xl bg-white/80 border border-emporio-gold/20 shadow-sm">
-                <div className="w-8 h-8 rounded-lg bg-emporio-gold/20 text-emporio-gold-dark flex items-center justify-center mb-2">
-                  <Award className="w-4 h-4" />
-                </div>
-                <h4 className="font-playfair font-semibold text-sm text-emporio-navy mb-1">Autenticidade</h4>
-                <p className="text-[11px] text-slate-600">Alimentos puros, sem aditivos e com indicação de origem.</p>
+            {/* Frase em destaque: "Sabores que alimentam o corpo e a alma" */}
+            <div className="pt-4">
+              <div className="bg-[#1F2A44] text-[#F2ECE2] p-6 rounded-2xl border-l-4 border-[#D2B48C] shadow-lg">
+                <p className="font-playfair text-xl sm:text-2xl font-bold italic tracking-wide text-[#D2B48C] mb-1">
+                  &quot;Sabores que alimentam o corpo e a alma.&quot;
+                </p>
+                <span className="text-xs font-montserrat text-slate-300 font-medium">
+                  — Empório Caminho da Fé
+                </span>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Timeline */}
-        <div className="bg-white rounded-3xl p-8 sm:p-12 border border-emporio-gold/20 shadow-card">
-          <h3 className="font-playfair text-2xl font-bold text-center text-emporio-navy mb-10">
-            Nossa Linha do Tempo
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
-            {TIMELINE_EVENTS.map((event, index) => (
-              <motion.div
-                key={event.year}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.15 }}
-                className="relative p-6 rounded-2xl bg-emporio-beige/40 border border-emporio-gold/20 flex flex-col justify-between"
-              >
-                <div>
-                  <span className="inline-block px-3 py-1 rounded-full bg-emporio-gold text-emporio-navy font-extrabold text-xs mb-3 shadow-sm">
-                    {event.year}
-                  </span>
-                  <h4 className="font-playfair font-bold text-base text-emporio-navy mb-2">
-                    {event.title}
-                  </h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    {event.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
         </div>
 
       </div>
