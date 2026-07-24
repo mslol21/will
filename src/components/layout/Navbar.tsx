@@ -98,14 +98,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
                 <Search className="w-5 h-5" />
               </button>
 
-              {/* Minha Conta */}
-              <Link
-                href="/admin"
-                className="p-2 text-[#2E2E2E] hover:text-[#8B5E34] transition-colors rounded-full hover:bg-black/5"
-                aria-label="Minha Conta"
-              >
-                <User className="w-5 h-5" />
-              </Link>
+
 
               {/* Carrinho de Compras */}
               <Link
