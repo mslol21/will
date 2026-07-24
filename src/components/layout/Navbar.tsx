@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Search, User, ShoppingBag, Menu, X, Sparkles } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/hooks/useCart";
 
@@ -41,22 +42,28 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[#F2ECE2] border-b border-[#D2B48C]/40 ${
-          isScrolled ? "py-3 shadow-md bg-[#F2ECE2]/95 backdrop-blur-md" : "py-4"
+          isScrolled ? "py-2.5 shadow-md bg-[#F2ECE2]/95 backdrop-blur-md" : "py-3.5"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             
-            {/* Logo Centralizada ou à Esquerda */}
+            {/* Logo Oficial (/logo.jpg) no lado esquerdo */}
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-full bg-[#1F2A44] text-[#D2B48C] flex items-center justify-center shadow-md border border-[#D2B48C]/40 group-hover:scale-105 transition-transform duration-300">
-                <Sparkles className="w-5 h-5" />
+              <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[#D2B48C] shadow-md group-hover:scale-105 transition-transform duration-300 bg-[#1F2A44] shrink-0">
+                <Image
+                  src="/logo.jpg"
+                  alt="Logo Empório Caminho da Fé"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
               <div className="flex flex-col">
-                <span className="font-playfair text-xl sm:text-2xl font-bold tracking-wide text-[#1F2A44] group-hover:text-[#8B5E34] transition-colors">
+                <span className="font-playfair text-xl sm:text-2xl font-bold tracking-wide text-[#1F2A44] group-hover:text-[#8B5E34] transition-colors leading-tight">
                   Empório Caminho da Fé
                 </span>
-                <span className="text-[10px] tracking-widest uppercase text-[#8B5E34] font-semibold -mt-1">
+                <span className="text-[10px] tracking-widest uppercase text-[#8B5E34] font-semibold">
                   Gastronomia & Tradição
                 </span>
               </div>

@@ -12,7 +12,7 @@ export function StorySection() {
         {/* Layout em 2 Colunas no Desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Coluna 1: Imagem do selo da marca (/images/selo-emblem.jpg) em formato circular/suave com sombra */}
+          {/* Coluna 1: Imagem do selo da marca (/logo.jpg) em formato circular/suave com sombra */}
           <div className="lg:col-span-5 flex justify-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -22,16 +22,16 @@ export function StorySection() {
               className="relative w-64 h-64 sm:w-80 sm:h-80 rounded-full overflow-hidden shadow-2xl border-4 border-[#D2B48C] bg-[#1F2A44] flex items-center justify-center p-2"
             >
               <Image
-                src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80"
+                src="/logo.jpg"
                 alt="Selo do Empório Caminho da Fé"
                 fill
-                className="object-cover rounded-full p-2"
+                className="object-cover rounded-full p-1"
               />
               <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#D2B48C]/60 pointer-events-none" />
             </motion.div>
           </div>
 
-          {/* Coluna 2: Título "Da Fé Nasceu um Sonho", texto institucional e a frase em destaque */}
+          {/* Coluna 2: Título "Da Fé Nasceu um Sonho", texto institucional e frase em destaque */}
           <div className="lg:col-span-7 space-y-6">
             <span className="inline-block px-3.5 py-1.5 rounded-full bg-[#8B5E34]/15 text-[#8B5E34] text-xs font-bold uppercase tracking-widest font-montserrat">
               Nossa História & Essência

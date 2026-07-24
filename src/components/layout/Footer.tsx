@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { 
   Sparkles, 
   MapPin, 
@@ -65,11 +66,11 @@ export function Footer() {
         {/* Grade do Rodapé */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-white/10">
           
-          {/* Coluna 1: Informações da Marca */}
+          {/* Coluna 1: Informações da Marca com a Logo (/logo.jpg) */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#8B5E34] text-[#F2ECE2] flex items-center justify-center shadow-md">
-                <Sparkles className="w-5 h-5 text-[#D2B48C]" />
+              <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#D2B48C] shadow-md shrink-0 bg-[#1F2A44]">
+                <Image src="/logo.jpg" alt="Logo Empório Caminho da Fé" fill className="object-cover" />
               </div>
               <span className="font-playfair text-2xl font-bold text-white tracking-wide">
                 Caminho da Fé
@@ -111,7 +112,7 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Coluna 2: Links Rápido */}
+          {/* Coluna 2: Links Rápidos */}
           <div>
             <h4 className="font-playfair text-lg font-semibold text-[#D2B48C] mb-4">
               Links Rápidos
