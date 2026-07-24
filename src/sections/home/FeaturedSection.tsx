@@ -40,7 +40,7 @@ const KITS: KitItem[] = [
     title: "Cesta Peregrino",
     description: "Terço em madeira imbuia, caneca esmaltada ágata, café gourmet e vela de cera de abelha.",
     price: 150.0,
-    image: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "kit-4",
@@ -57,7 +57,6 @@ export function FeaturedSection() {
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
 
   const handleAddToCart = (kit: KitItem) => {
-    // Simular objeto de produto para o cart
     addItem({
       id: kit.id,
       slug: kit.slug,
@@ -101,7 +100,7 @@ export function FeaturedSection() {
           </p>
         </div>
 
-        {/* Grid Responsivo de 4 Colunas (1 mobile, 2 tablet, 4 desktop) */}
+        {/* Grid Responsivo de 4 Colunas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {KITS.map((kit, index) => (
             <motion.div
@@ -110,7 +109,6 @@ export function FeaturedSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              /* Card com borda fina #D2B48C e efeito hover suave */
               className="group bg-white rounded-3xl overflow-hidden border border-[#D2B48C] shadow-card hover:shadow-2xl transition-all duration-300 flex flex-col justify-between"
             >
               <div>
@@ -123,7 +121,7 @@ export function FeaturedSection() {
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute top-3 right-3 bg-[#1F2A44]/90 backdrop-blur-md text-[#D2B48C] text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border border-[#D2B48C]/30">
+                  <div className="absolute top-3 right-3 bg-[#1F2A44]/90 backdrop-blur-md text-[#D2B48C] text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border border-[#D2B48C]/30 font-montserrat">
                     Edição Especial
                   </div>
                 </div>

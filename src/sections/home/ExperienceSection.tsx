@@ -11,11 +11,13 @@ import {
   Send, 
   CheckCircle2 
 } from "lucide-react";
+import { submitPrayerRequest } from "@/lib/supabase";
 
 export function ExperienceSection() {
   const [oracaoText, setOracaoText] = useState("");
   const [nomeText, setNomeText] = useState("");
   const [enviado, setEnviado] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const pilares = [
     {
@@ -45,9 +47,12 @@ export function ExperienceSection() {
     },
   ];
 
-  const handleEnviarOracao = (e: React.FormEvent) => {
+  const handleEnviarOracao = async (e: React.FormEvent) => {
     e.preventDefault();
     if (oracaoText.trim()) {
+      setIsSubmitting(true);
+      await submitPrayerRequest(nomeText, oracaoText);
+      setIsSubmitting(false);
       setEnviado(true);
       setOracaoText("");
       setNomeText("");
@@ -101,20 +106,20 @@ export function ExperienceSection() {
           })}
         </div>
 
-        {/* Formulário Elegante para "Pedidos de Oração Online" */}
+        {/* Formulário Elegante para "Pedidos de Oração Online" integrado ao Supabase */}
         <div id="oracao" className="max-w-3xl mx-auto bg-[#1F2A44] text-white rounded-3xl p-8 sm:p-12 border border-[#D2B48C]/40 shadow-2xl relative overflow-hidden">
           <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#D2B48C]/10 rounded-full blur-2xl pointer-events-none" />
 
           <div className="text-center space-y-3 mb-8">
             <div className="inline-flex items-center gap-2 text-[#D2B48C] text-xs font-bold uppercase tracking-widest font-montserrat">
               <Sparkles className="w-4 h-4" />
-              <span>Espaço Sagrado</span>
+              <span>Espaço Sagrado & Supabase</span>
             </div>
             <h3 className="font-playfair text-2xl sm:text-4xl font-bold text-white">
               Pedidos de Oração Online
             </h3>
             <p className="font-montserrat text-xs sm:text-sm text-slate-300 font-light max-w-xl mx-auto">
-              Deixe aqui sua intenção de oração. Nossos joelhos se dobram e nossas intenções são apresentadas em bênção comunitária.
+              Deixe aqui sua intenção de oração. Nossos joelhos se dobram e suas palavras são salvas com carinho.
             </p>
           </div>
 
@@ -125,8 +130,8 @@ export function ExperienceSection() {
               className="bg-emerald-900/60 border border-emerald-500/40 rounded-2xl p-6 text-center space-y-2 text-emerald-200"
             >
               <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-              <h4 className="font-playfair text-xl font-bold text-white">Pedido Recebido com Abençoada Gratidão!</h4>
-              <p className="text-xs font-montserrat">Sua intenção de oração foi registrada com carinho.</p>
+              <h4 className="font-playfair text-xl font-bold text-white">Pedido Salvo e Abençoado!</h4>
+              <p className="text-xs font-montserrat">Sua intenção de oração foi registrada no banco de dados com carinho.</p>
             </motion.div>
           ) : (
             <form onSubmit={handleEnviarOracao} className="space-y-4">
@@ -160,10 +165,11 @@ export function ExperienceSection() {
               <div className="pt-2 text-center">
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-10 py-4 rounded-full bg-[#8B5E34] hover:bg-[#D2B48C] hover:text-[#1F2A44] text-white font-montserrat font-bold text-xs uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 mx-auto"
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto px-10 py-4 rounded-full bg-[#8B5E34] hover:bg-[#D2B48C] hover:text-[#1F2A44] text-white font-montserrat font-bold text-xs uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Enviar Pedido de Oração</span>
+                  <span>{isSubmitting ? "Gravando no Supabase..." : "Enviar Pedido de Oração"}</span>
                 </button>
               </div>
             </form>

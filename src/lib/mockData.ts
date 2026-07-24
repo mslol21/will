@@ -51,7 +51,7 @@ export const CATEGORIES: Category[] = [
     id: "mel",
     name: "Méis & Própolis",
     description: "Mel silvestre puro da Mantiqueira, mel de flor de laranjeira e extratos de própolis verde artesanal.",
-    image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&w=800&q=80",
     iconName: "Droplet",
     itemCount: 6,
   },
@@ -67,7 +67,7 @@ export const CATEGORIES: Category[] = [
     id: "cachacas",
     name: "Cachaças de Alambique",
     description: "Envelhecidas em tonéis de carvalho, amburana e balsamão por mestres alambiqueiros.",
-    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=800&q=80",
     iconName: "Wine",
     itemCount: 9,
   },
@@ -75,7 +75,7 @@ export const CATEGORIES: Category[] = [
     id: "vinhos",
     name: "Vinhos da Serra",
     description: "Rótulos artesanais da dupla poda de altitude da Serra da Mantiqueira.",
-    image: "https://images.unsplash.com/photo-1558001373-7b93ee48ffa0?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=800&q=80",
     iconName: "GlassWater",
     itemCount: 5,
   },
@@ -91,7 +91,7 @@ export const CATEGORIES: Category[] = [
     id: "peregrino",
     name: "Linha Peregrino",
     description: "Terços em madeira nobre, velas de cera de abelha, canecas do peregrino e lembranças de bênção.",
-    image: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=800&q=80",
     iconName: "Sparkles",
     itemCount: 11,
   },
@@ -196,9 +196,9 @@ export const MOCK_PRODUCTS: Product[] = [
     fullDescription: "Criado especialmente para acompanhar o peregrino durante sua jornada de fé e reflexão. Cordão trançado ultra resistente, perfeito para carregar no bolso ou mochila de caminhada.",
     price: 65.00,
     category: "peregrino",
-    image: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=1000&q=80",
     gallery: [
-      "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80"
+      "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=1000&q=80"
     ],
     weight: "80g",
     origin: "Artesanato Local - MG",
@@ -222,9 +222,9 @@ export const MOCK_PRODUCTS: Product[] = [
     fullDescription: "Mel 100% puro com textura aveludada e notas florais ricas em propriedades medicinais e antioxidantes naturais.",
     price: 38.00,
     category: "mel",
-    image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&w=1000&q=80",
     gallery: [
-      "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=1000&q=80"
+      "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&w=1000&q=80"
     ],
     weight: "500g",
     origin: "Passa Quatro - MG",
@@ -247,9 +247,9 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 115.00,
     originalPrice: 130.00,
     category: "cachacas",
-    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=1000&q=80",
     gallery: [
-      "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1000&q=80"
+      "https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=1000&q=80"
     ],
     weight: "1.2kg (com garrafa)",
     origin: "Salinas - MG",
@@ -344,7 +344,7 @@ export const MOCK_GIFT_BASKETS: GiftBasket[] = [
     name: "Cesta Especial Benção do Peregrino",
     description: "União harmônica entre a espiritualidade e o aconchego gastronômico mineiro.",
     price: 189.00,
-    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=1000&q=80",
     includedItems: [
       "Terço em Madeira Imbuia com Medalha",
       "Caneca Esmaltada 'O Caminho Cura'",
@@ -365,7 +365,7 @@ export const MOCK_GIFT_BASKETS: GiftBasket[] = [
     description: "Ideal para celebrações especiais a dois com aperitivos finos artesanais.",
     price: 298.00,
     originalPrice: 325.00,
-    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=1000&q=80",
     includedItems: [
       "Vinho Syrah de Altitude da Serra 750ml",
       "Queijo Canastra Maturado Peça Inteira",
