@@ -5,44 +5,53 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SearchModal } from "@/components/product/SearchModal";
 import { HeroSection } from "@/sections/home/HeroSection";
-import { ExperienceSection } from "@/sections/home/ExperienceSection";
-import { StorySection } from "@/sections/home/StorySection";
 import { CategoriesSection } from "@/sections/home/CategoriesSection";
 import { FeaturedSection } from "@/sections/home/FeaturedSection";
 import { SpecialBaskets } from "@/sections/home/SpecialBaskets";
 import { PeregrinoSection } from "@/sections/home/PeregrinoSection";
-import { GallerySection } from "@/sections/home/GallerySection";
+import { StorySection } from "@/sections/home/StorySection";
 import { TestimonialsSection } from "@/sections/home/TestimonialsSection";
-import { InstagramFeed } from "@/sections/home/InstagramFeed";
 import { LocationSection } from "@/sections/home/LocationSection";
 
 export default function HomePage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-emporio-beige flex flex-col selection:bg-emporio-gold selection:text-emporio-navy">
-      {/* Clean Navigation Bar */}
+    <div className="min-h-screen bg-emporio-beige flex flex-col selection:bg-emporio-gold selection:text-emporio-navy font-montserrat">
+      {/* Navbar Limpa e Objetiva */}
       <Navbar onOpenSearch={() => setIsSearchOpen(true)} />
 
-      {/* Main Home Content */}
+      {/* Fluxo Principal Otimizado para Vendas (CRO) */}
       <main className="flex-grow">
+        {/* 1. Banner Principal com CTA Duplo + Benefícios de Compra */}
         <HeroSection />
-        <ExperienceSection />
-        <StorySection />
+
+        {/* 2. Navegação Rápida por Categorias */}
         <CategoriesSection />
+
+        {/* 3. Kits & Cestas Mais Vendidas com Adicionar Rápido ao Carrinho */}
         <FeaturedSection />
+
+        {/* 4. Chamada Direta: Monte Sua Cesta Personalizada */}
         <SpecialBaskets />
+
+        {/* 5. Linha Peregrino & Fé */}
         <PeregrinoSection />
-        <GallerySection />
+
+        {/* 6. Nossa História & Tradição Mineira */}
+        <StorySection />
+
+        {/* 7. Depoimentos & Prova Social */}
         <TestimonialsSection />
-        <InstagramFeed />
+
+        {/* 8. Nossa Loja Física & Contato */}
         <LocationSection />
       </main>
 
-      {/* Institutional Dark Footer */}
+      {/* Rodapé Institucional Escuro */}
       <Footer />
 
-      {/* Instant Search Popover */}
+      {/* Modal de Busca Instantânea */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   );
