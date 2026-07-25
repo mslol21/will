@@ -1,0 +1,584 @@
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  Search,
+  Plus,
+  Minus,
+  Trash2,
+  ShoppingCart,
+  DollarSign,
+  CreditCard,
+  Smartphone,
+  Banknote,
+  X,
+  Check,
+  ChevronRight,
+  RotateCcw,
+  Printer,
+  Package,
+  Lock,
+  Calculator,
+  Clock,
+  Zap,
+  AlertTriangle,
+} from "lucide-react";
+import { getProdutos, getCategorias, updateStock, insertLancamento, insertPedido } from "@/lib/supabase";
+import { Product, Category } from "@/types";
+import { formatCurrency } from "@/lib/utils";
+
+// ─── Types ────────────────────────────────────────────────────
+interface CartItem {
+  product: Product;
+  qty: number;
+  unitPrice: number;
+}
+
+type PaymentMethod = "dinheiro" | "pix" | "credito" | "debito";
+type Screen = "caixa" | "pagamento" | "troco" | "sucesso";
+
+const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+  dinheiro: "Dinheiro",
+  pix: "PIX",
+  credito: "Crédito",
+  debito: "Débito",
+};
+
+const PIN = "1234";
+
+// ─── Helpers ──────────────────────────────────────────────────
+function now() {
+  return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+function today() {
+  return new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+}
+
+export default function CaixaPage() {
+  // ── Auth ────────────────────────────────────────────────────
+  const [authenticated, setAuthenticated] = useState(false);
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState(false);
+
+  // ── Data ────────────────────────────────────────────────────
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // ── UI State ────────────────────────────────────────────────
+  const [screen, setScreen] = useState<Screen>("caixa");
+  const [activeCat, setActiveCat] = useState<string>("todos");
+  const [search, setSearch] = useState("");
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [discount, setDiscount] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
+  const [cashReceived, setCashReceived] = useState("");
+  const [processing, setProcessing] = useState(false);
+  const [currentTime, setCurrentTime] = useState(now());
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // ── Load ────────────────────────────────────────────────────
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    const [prods, cats] = await Promise.all([getProdutos(), getCategorias()]);
+    setProducts(prods.filter((p) => p.isActive && p.stock > 0));
+    setCategories(cats);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (authenticated) loadData();
+  }, [authenticated, loadData]);
+
+  useEffect(() => {
+    const t = setInterval(() => setCurrentTime(now()), 30000);
+    return () => clearInterval(t);
+  }, []);
+
+  // ── PIN Auth ─────────────────────────────────────────────────
+  const handlePin = (digit: string) => {
+    const next = pin + digit;
+    setPin(next);
+    if (next.length === 4) {
+      if (next === PIN) {
+        setAuthenticated(true);
+      } else {
+        setPinError(true);
+        setTimeout(() => { setPin(""); setPinError(false); }, 800);
+      }
+    }
+  };
+
+  // ── Cart ─────────────────────────────────────────────────────
+  const addToCart = (product: Product) => {
+    setCart((prev) => {
+      const existing = prev.find((i) => i.product.id === product.id);
+      if (existing) {
+        if (existing.qty >= product.stock) return prev;
+        return prev.map((i) =>
+          i.product.id === product.id ? { ...i, qty: i.qty + 1 } : i
+        );
+      }
+      return [...prev, { product, qty: 1, unitPrice: product.price }];
+    });
+  };
+
+  const updateQty = (id: string, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((i) => (i.product.id === id ? { ...i, qty: Math.max(0, i.qty + delta) } : i))
+        .filter((i) => i.qty > 0)
+    );
+  };
+
+  const removeItem = (id: string) => setCart((prev) => prev.filter((i) => i.product.id !== id));
+
+  const clearCart = () => {
+    setCart([]);
+    setDiscount(0);
+    setCashReceived("");
+    setScreen("caixa");
+  };
+
+  // ── Totals ───────────────────────────────────────────────────
+  const subtotal = cart.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+  const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+  const total = Math.max(0, subtotal - discount);
+  const cashVal = parseFloat(cashReceived.replace(",", ".")) || 0;
+  const troco = cashVal - total;
+
+  // ── Filtered Products ────────────────────────────────────────
+  const filtered = products.filter((p) => {
+    const matchCat = activeCat === "todos" || p.category === activeCat;
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
+
+  // ── Finalize ─────────────────────────────────────────────────
+  const finalize = async () => {
+    if (cart.length === 0) return;
+    setProcessing(true);
+    try {
+      // Update stock for each item
+      for (const item of cart) {
+        const newStock = item.product.stock - item.qty;
+        await updateStock(item.product.id, newStock);
+      }
+      // Register in financial
+      await insertLancamento({
+        tipo: "receita",
+        descricao: `Venda PDV: ${cart.map((i) => `${i.qty}x ${i.product.name.slice(0, 20)}`).join(", ")}`,
+        valor: total,
+        data: new Date().toISOString().slice(0, 10),
+        categoria: "venda-caixa",
+      });
+      // Register order
+      await insertPedido({
+        itens: cart.map((i) => ({ id: i.product.id, name: i.product.name, qty: i.qty, price: i.unitPrice })),
+        total,
+      });
+      setScreen("sucesso");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // RENDER: PIN
+  // ─────────────────────────────────────────────────────────────
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-[#1F2A44] flex flex-col items-center justify-center p-6 font-montserrat">
+        <div className="bg-white rounded-3xl p-8 w-full max-w-xs shadow-2xl text-center space-y-6">
+          <div className="w-16 h-16 rounded-full bg-[#1F2A44] text-[#D2B48C] flex items-center justify-center mx-auto">
+            <Lock className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="font-playfair text-2xl font-bold text-[#1F2A44]">Frente de Caixa</h1>
+            <p className="text-xs text-slate-400 mt-1">Empório Caminho da Fé</p>
+          </div>
+
+          {/* PIN dots */}
+          <div className="flex justify-center gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`w-4 h-4 rounded-full border-2 transition-all ${
+                  i < pin.length
+                    ? pinError ? "bg-red-500 border-red-500" : "bg-[#8B5E34] border-[#8B5E34]"
+                    : "border-slate-300"
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Numpad */}
+          <div className="grid grid-cols-3 gap-2">
+            {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((d) => (
+              <button
+                key={d}
+                onClick={() => {
+                  if (d === "⌫") setPin((p) => p.slice(0, -1));
+                  else if (d !== "") handlePin(d);
+                }}
+                disabled={d === ""}
+                className={`py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 ${
+                  d === "" ? "invisible" :
+                  d === "⌫" ? "bg-slate-100 text-slate-500 hover:bg-slate-200" :
+                  "bg-slate-100 text-[#1F2A44] hover:bg-[#1F2A44] hover:text-[#D2B48C]"
+                }`}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-400">PIN demo: 1234</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // RENDER: SUCESSO
+  // ─────────────────────────────────────────────────────────────
+  if (screen === "sucesso") {
+    return (
+      <div className="min-h-screen bg-[#1F2A44] flex flex-col items-center justify-center p-6 font-montserrat">
+        <div className="bg-white rounded-3xl p-10 max-w-sm w-full text-center shadow-2xl space-y-6">
+          <div className="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto animate-bounce">
+            <Check className="w-10 h-10" />
+          </div>
+          <div>
+            <h2 className="font-playfair text-3xl font-bold text-emerald-700">Venda Aprovada!</h2>
+            <p className="text-slate-500 text-sm mt-1">{cart.length} item(s) · {formatCurrency(total)}</p>
+          </div>
+          {paymentMethod === "dinheiro" && troco > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+              <p className="text-xs text-amber-700 font-bold uppercase">Troco para o cliente</p>
+              <p className="font-playfair text-4xl font-bold text-amber-700">{formatCurrency(troco)}</p>
+            </div>
+          )}
+          <div className="text-xs text-slate-400 border-t border-slate-100 pt-4 space-y-1">
+            <p>💳 {PAYMENT_LABELS[paymentMethod]}</p>
+            <p>🕐 {currentTime} · {today()}</p>
+            <p>✅ Estoque atualizado no Supabase</p>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => { setScreen("caixa"); }} className="flex-1 py-3 rounded-2xl bg-slate-100 text-slate-700 font-bold text-sm hover:bg-slate-200">
+              <Printer className="w-4 h-4 inline mr-1" /> Imprimir
+            </button>
+            <button onClick={clearCart} className="flex-1 py-3 rounded-2xl bg-[#8B5E34] text-white font-bold text-sm hover:bg-[#1F2A44] flex items-center justify-center gap-2">
+              <RotateCcw className="w-4 h-4" /> Nova Venda
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // RENDER: CAIXA PRINCIPAL
+  // ─────────────────────────────────────────────────────────────
+  return (
+    <div className="h-screen flex flex-col bg-slate-100 font-montserrat overflow-hidden">
+
+      {/* ── Top Bar ─────────────────────────────────────────── */}
+      <header className="bg-[#1F2A44] text-white px-5 py-3 flex items-center justify-between shrink-0 border-b border-[#D2B48C]/20">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-[#8B5E34] flex items-center justify-center shrink-0">
+            <Zap className="w-5 h-5 text-[#D2B48C]" />
+          </div>
+          <div>
+            <p className="font-playfair font-bold text-base leading-tight">PDV · Frente de Caixa</p>
+            <p className="text-[10px] text-[#D2B48C]">Empório Caminho da Fé</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 text-xs text-slate-300">
+          <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{currentTime}</span>
+          <span className="hidden sm:block text-slate-400">{today()}</span>
+          <button onClick={() => setAuthenticated(false)} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white"><Lock className="w-4 h-4" /></button>
+        </div>
+      </header>
+
+      {/* ── Main ────────────────────────────────────────────── */}
+      <div className="flex-1 flex overflow-hidden">
+
+        {/* ── LEFT: Products ────────────────────────────────── */}
+        <div className="flex-1 flex flex-col overflow-hidden border-r border-slate-200">
+
+          {/* Search + Categories */}
+          <div className="bg-white px-4 py-3 space-y-3 border-b border-slate-200 shrink-0">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar produto por nome..."
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#8B5E34] focus:bg-white transition-colors"
+              />
+              {search && (
+                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Category tabs */}
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {[{ id: "todos", name: "Todos" }, ...categories].map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCat(cat.id)}
+                  className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    activeCat === cat.id
+                      ? "bg-[#1F2A44] text-[#D2B48C] shadow-md"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Product Grid */}
+          {loading ? (
+            <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">
+              Carregando produtos do Supabase...
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2">
+              <Package className="w-10 h-10 opacity-30" />
+              <p className="text-sm">Nenhum produto encontrado</p>
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 content-start">
+              {filtered.map((product) => {
+                const inCart = cart.find((i) => i.product.id === product.id);
+                const isLowStock = product.stock <= 5;
+                return (
+                  <button
+                    key={product.id}
+                    onClick={() => addToCart(product)}
+                    className={`bg-white rounded-2xl p-3 text-left transition-all active:scale-95 hover:shadow-md border-2 relative ${
+                      inCart ? "border-[#8B5E34] shadow-md" : "border-transparent"
+                    }`}
+                  >
+                    {/* Stock badge */}
+                    {isLowStock && (
+                      <span className="absolute top-2 right-2 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center">
+                        <AlertTriangle className="w-3 h-3 text-white" />
+                      </span>
+                    )}
+
+                    {/* In cart indicator */}
+                    {inCart && (
+                      <span className="absolute top-2 left-2 w-5 h-5 bg-[#8B5E34] text-white rounded-full flex items-center justify-center text-[10px] font-bold">
+                        {inCart.qty}
+                      </span>
+                    )}
+
+                    {/* Product image */}
+                    <div className="aspect-square rounded-xl overflow-hidden bg-slate-100 mb-2">
+                      {product.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-300">
+                          <Package className="w-8 h-8" />
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="text-xs font-bold text-[#1F2A44] line-clamp-2 leading-tight mb-1">{product.name}</p>
+                    <p className="text-[11px] text-slate-400 mb-1">{product.weight}</p>
+                    <p className="font-playfair font-bold text-[#8B5E34] text-base">{formatCurrency(product.price)}</p>
+                    <p className="text-[10px] text-slate-300">{product.stock} em estoque</p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT: Cart / Payment ─────────────────────────── */}
+        <div className="w-80 lg:w-96 flex flex-col bg-white shrink-0">
+
+          {/* Cart header */}
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-[#8B5E34]" />
+              <span className="font-bold text-[#1F2A44] text-sm">Pedido Atual</span>
+              {totalItems > 0 && (
+                <span className="w-5 h-5 rounded-full bg-[#8B5E34] text-white text-[10px] font-bold flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
+            </div>
+            {cart.length > 0 && (
+              <button onClick={clearCart} className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1">
+                <RotateCcw className="w-3.5 h-3.5" /> Limpar
+              </button>
+            )}
+          </div>
+
+          {/* Cart items */}
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
+            {cart.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-40 text-slate-300 text-sm gap-2">
+                <ShoppingCart className="w-10 h-10 opacity-30" />
+                <p>Toque nos produtos para adicionar</p>
+              </div>
+            ) : (
+              cart.map((item) => (
+                <div key={item.product.id} className="px-4 py-3 flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-[#1F2A44] truncate">{item.product.name}</p>
+                    <p className="text-[11px] text-slate-400">{formatCurrency(item.unitPrice)} × {item.qty}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => updateQty(item.product.id, -1)} className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 active:scale-90">
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <span className="w-8 text-center text-sm font-bold text-[#1F2A44]">{item.qty}</span>
+                    <button
+                      onClick={() => updateQty(item.product.id, 1)}
+                      disabled={item.qty >= item.product.stock}
+                      className="w-6 h-6 rounded-lg bg-[#8B5E34] hover:bg-[#1F2A44] flex items-center justify-center text-white active:scale-90 disabled:opacity-30"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="text-right shrink-0 w-16">
+                    <p className="text-sm font-bold text-[#1F2A44]">{formatCurrency(item.unitPrice * item.qty)}</p>
+                    <button onClick={() => removeItem(item.product.id)} className="text-red-300 hover:text-red-500 mt-0.5">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* ── Payment Panel ─────────────────────────────────── */}
+          {cart.length > 0 && (
+            <div className="border-t border-slate-200 shrink-0">
+
+              {screen === "caixa" && (
+                <div className="p-4 space-y-3">
+                  {/* Subtotal / Discount / Total */}
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between text-slate-500">
+                      <span>Subtotal</span>
+                      <span>{formatCurrency(subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-500">
+                      <span>Desconto</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-slate-300">R$</span>
+                        <input
+                          type="number"
+                          value={discount || ""}
+                          onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                          placeholder="0,00"
+                          className="w-16 text-right text-sm border border-slate-200 rounded-lg px-2 py-0.5 focus:outline-none focus:border-[#8B5E34]"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg text-[#1F2A44] pt-1 border-t border-slate-100">
+                      <span>TOTAL</span>
+                      <span className="font-playfair">{formatCurrency(total)}</span>
+                    </div>
+                  </div>
+
+                  {/* Payment method */}
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {(["pix", "dinheiro", "credito", "debito"] as PaymentMethod[]).map((m) => {
+                      const icons: Record<PaymentMethod, React.ReactNode> = {
+                        pix: <Smartphone className="w-4 h-4" />,
+                        dinheiro: <Banknote className="w-4 h-4" />,
+                        credito: <CreditCard className="w-4 h-4" />,
+                        debito: <CreditCard className="w-4 h-4" />,
+                      };
+                      return (
+                        <button
+                          key={m}
+                          onClick={() => setPaymentMethod(m)}
+                          className={`flex flex-col items-center gap-1 py-2 rounded-xl text-[10px] font-bold transition-all ${
+                            paymentMethod === m
+                              ? "bg-[#1F2A44] text-[#D2B48C]"
+                              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
+                        >
+                          {icons[m]}
+                          {m === "credito" ? "Crédito" : m === "debito" ? "Débito" : m === "pix" ? "PIX" : "Dinheiro"}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Cash received (only for dinheiro) */}
+                  {paymentMethod === "dinheiro" && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-bold text-slate-600 w-20 shrink-0">Recebido:</label>
+                        <div className="relative flex-1">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">R$</span>
+                          <input
+                            type="number"
+                            value={cashReceived}
+                            onChange={(e) => setCashReceived(e.target.value)}
+                            placeholder="0,00"
+                            className="w-full pl-7 pr-2 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#8B5E34]"
+                          />
+                        </div>
+                      </div>
+                      {cashVal > 0 && (
+                        <div className={`flex justify-between text-sm font-bold px-2 ${troco >= 0 ? "text-emerald-700" : "text-red-600"}`}>
+                          <span>{troco >= 0 ? "Troco:" : "Falta:"}</span>
+                          <span>{formatCurrency(Math.abs(troco))}</span>
+                        </div>
+                      )}
+                      {/* Quick cash buttons */}
+                      <div className="flex gap-1.5">
+                        {[20, 50, 100, 200].map((v) => (
+                          <button key={v} onClick={() => setCashReceived(String(v))} className="flex-1 py-1.5 text-[10px] font-bold bg-slate-100 rounded-lg hover:bg-slate-200 text-slate-700">
+                            R${v}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Finalize */}
+                  <button
+                    onClick={finalize}
+                    disabled={processing || (paymentMethod === "dinheiro" && cashVal > 0 && troco < 0)}
+                    className="w-full py-4 rounded-2xl bg-[#8B5E34] hover:bg-[#1F2A44] text-white font-bold text-base transition-all shadow-lg active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {processing ? (
+                      <><RotateCcw className="w-5 h-5 animate-spin" /> Processando...</>
+                    ) : (
+                      <><Check className="w-5 h-5" /> Finalizar · {formatCurrency(total)}</>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Empty cart footer */}
+          {cart.length === 0 && (
+            <div className="p-4 text-center text-xs text-slate-300 border-t border-slate-100">
+              Selecione os produtos à esquerda
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
