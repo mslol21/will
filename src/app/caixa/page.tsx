@@ -26,6 +26,7 @@ import {
 import { getProdutos, getCategorias, updateStock, insertLancamento, insertPedido } from "@/lib/supabase";
 import { Product, Category } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+import { buildPlugPagDeeplink, generateThermalReceipt } from "@/lib/pagbank";
 
 // ─── Types ────────────────────────────────────────────────────
 interface CartItem {
@@ -34,7 +35,7 @@ interface CartItem {
   unitPrice: number;
 }
 
-type PaymentMethod = "dinheiro" | "pix" | "credito" | "debito";
+type PaymentMethod = "dinheiro" | "pix" | "credito" | "debito" | "voucher";
 type Screen = "caixa" | "pagamento" | "troco" | "sucesso";
 
 const PAYMENT_LABELS: Record<PaymentMethod, string> = {
@@ -42,6 +43,7 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   pix: "PIX",
   credito: "Crédito",
   debito: "Débito",
+  voucher: "Voucher / VR",
 };
 
 const PIN = "1234";
@@ -496,26 +498,27 @@ export default function CaixaPage() {
                   </div>
 
                   {/* Payment method */}
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {(["pix", "dinheiro", "credito", "debito"] as PaymentMethod[]).map((m) => {
+                  <div className="grid grid-cols-5 gap-1">
+                    {(["pix", "dinheiro", "credito", "debito", "voucher"] as PaymentMethod[]).map((m) => {
                       const icons: Record<PaymentMethod, React.ReactNode> = {
                         pix: <Smartphone className="w-4 h-4" />,
                         dinheiro: <Banknote className="w-4 h-4" />,
                         credito: <CreditCard className="w-4 h-4" />,
                         debito: <CreditCard className="w-4 h-4" />,
+                        voucher: <Zap className="w-4 h-4" />,
                       };
                       return (
                         <button
                           key={m}
                           onClick={() => setPaymentMethod(m)}
-                          className={`flex flex-col items-center gap-1 py-2 rounded-xl text-[10px] font-bold transition-all ${
+                          className={`flex flex-col items-center gap-1 py-2 rounded-xl text-[9px] font-bold transition-all ${
                             paymentMethod === m
                               ? "bg-[#1F2A44] text-[#D2B48C]"
                               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                           }`}
                         >
                           {icons[m]}
-                          {m === "credito" ? "Crédito" : m === "debito" ? "Débito" : m === "pix" ? "PIX" : "Dinheiro"}
+                          {m === "credito" ? "Crédito" : m === "debito" ? "Débito" : m === "pix" ? "PIX" : m === "voucher" ? "Voucher" : "Dinheiro"}
                         </button>
                       );
                     })}
@@ -554,6 +557,29 @@ export default function CaixaPage() {
                     </div>
                   )}
 
+                  {/* Trigger Moderninha Smart or Finalize */}
+                  {paymentMethod !== "dinheiro" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const typeMap: Record<string, "CREDIT" | "DEBIT" | "PIX" | "VOUCHER"> = {
+                          credito: "CREDIT",
+                          debito: "DEBIT",
+                          pix: "PIX",
+                          voucher: "VOUCHER",
+                        };
+                        const url = buildPlugPagDeeplink({
+                          amount: total,
+                          paymentType: typeMap[paymentMethod] || "CREDIT",
+                        });
+                        window.location.href = url;
+                      }}
+                      className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all mb-1"
+                    >
+                      <Zap className="w-4 h-4" /> Enviar para Moderninha Smart
+                    </button>
+                  )}
+
                   {/* Finalize */}
                   <button
                     onClick={finalize}
@@ -563,7 +589,7 @@ export default function CaixaPage() {
                     {processing ? (
                       <><RotateCcw className="w-5 h-5 animate-spin" /> Processando...</>
                     ) : (
-                      <><Check className="w-5 h-5" /> Finalizar · {formatCurrency(total)}</>
+                      <><Check className="w-5 h-5" /> Finalizar Venda · {formatCurrency(total)}</>
                     )}
                   </button>
                 </div>
