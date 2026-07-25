@@ -41,9 +41,11 @@ import {
   insertLancamento,
   deleteLancamento,
   getPrayerRequests,
+  seedAllMockDataToSupabase,
 } from "@/lib/supabase";
 import { Product, Category } from "@/types";
 import { formatCurrency, slugify } from "@/lib/utils";
+import { Zap, Database, Keyboard, ExternalLink, RefreshCw } from "lucide-react";
 
 const MEI_ANNUAL_LIMIT = 81000.0;
 
@@ -132,6 +134,43 @@ export default function AdminPage() {
       setIsAuthenticated(true);
     }
   };
+
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const handleSeedDatabase = async () => {
+    if (!confirm("Deseja implantar todos os produtos e categorias seeds no banco de dados Supabase?")) return;
+    setIsSeeding(true);
+    setSaveStatus("saving");
+    try {
+      await seedAllMockDataToSupabase();
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus(""), 2000);
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      setSaveStatus("error");
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  // Teclas de atalho (Alt + 1..5, Alt+N, Alt+P)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isAuthenticated) return;
+      if (e.altKey) {
+        if (e.key === "1") { setActiveTab("dashboard"); e.preventDefault(); }
+        if (e.key === "2") { setActiveTab("produtos"); e.preventDefault(); }
+        if (e.key === "3") { setActiveTab("categorias"); e.preventDefault(); }
+        if (e.key === "4") { setActiveTab("estoque"); e.preventDefault(); }
+        if (e.key === "5") { setActiveTab("financeiro"); e.preventDefault(); }
+        if (e.key === "p" || e.key === "P") { window.location.href = "/caixa"; e.preventDefault(); }
+        if (e.key === "n" || e.key === "N") { handleOpenNewProduct(); e.preventDefault(); }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAuthenticated]);
 
   const handleLogout = () => {
     if (typeof window !== "undefined") {
@@ -342,7 +381,59 @@ export default function AdminPage() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-grow p-6 lg:p-8 space-y-8 overflow-y-auto">
+        <main className="flex-grow p-6 lg:p-8 space-y-6 overflow-y-auto">
+
+          {/* ⚡ BARRA DE ATALHOS RÁPIDOS */}
+          <div className="bg-white rounded-3xl p-4 border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
+                <Zap className="w-3.5 h-3.5 text-[#8B5E34]" /> Atalhos Rápidos:
+              </span>
+              
+              <Link
+                href="/caixa"
+                className="px-3.5 py-2 rounded-xl bg-[#1F2A44] hover:bg-[#8B5E34] text-[#D2B48C] hover:text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                title="Abrir Frente de Caixa (Alt + P)"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Frente de Caixa (PDV)</span>
+                <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded font-mono">Alt+P</span>
+              </Link>
+
+              <button
+                onClick={handleOpenNewProduct}
+                className="px-3.5 py-2 rounded-xl bg-[#8B5E34] hover:bg-[#1F2A44] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                title="Cadastrar Novo Produto (Alt + N)"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Novo Produto</span>
+                <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded font-mono">Alt+N</span>
+              </button>
+
+              <button
+                onClick={handleOpenNewCategory}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Nova Categoria</span>
+              </button>
+
+              <button
+                onClick={handleSeedDatabase}
+                disabled={isSeeding}
+                className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50"
+                title="Implantar todos os produtos e categorias seeds no Supabase"
+              >
+                <Database className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{isSeeding ? "Implantando..." : "Implantar Seeds no Banco"}</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium">
+              <Keyboard className="w-3.5 h-3.5 text-slate-400" />
+              <span>Navegação: <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono text-[10px]">Alt + 1..5</kbd></span>
+            </div>
+          </div>
 
           {/* DASHBOARD */}
           {activeTab === "dashboard" && (

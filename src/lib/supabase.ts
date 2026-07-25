@@ -189,3 +189,47 @@ export async function insertPedido(pedido: {
     .select();
   return { data, error };
 }
+
+// ─── AUTOMATIC SEED ──────────────────────────────────────────
+import { CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
+
+export async function seedAllMockDataToSupabase() {
+  console.log("🌱 Populando categorias e produtos no Supabase...");
+  
+  // 1. Seed categories
+  for (const cat of CATEGORIES) {
+    await supabase.from("categorias").upsert({
+      id: cat.id,
+      name: cat.name,
+      description: cat.description,
+      image: cat.image,
+      icon_name: cat.iconName || "Package",
+      item_count: cat.itemCount || 0,
+    });
+  }
+
+  // 2. Seed products
+  for (const prod of MOCK_PRODUCTS) {
+    await supabase.from("produtos").upsert({
+      slug: prod.slug,
+      name: prod.name,
+      short_description: prod.shortDescription,
+      full_description: prod.fullDescription,
+      price: prod.price,
+      original_price: prod.originalPrice || null,
+      category: prod.category,
+      image: prod.image,
+      gallery: prod.gallery || [],
+      weight: prod.weight,
+      origin: prod.origin,
+      sku: prod.sku,
+      stock: prod.stock || 20,
+      rating: prod.rating || 5.0,
+      review_count: prod.reviewCount || 10,
+      badges: prod.badges || [],
+      is_active: true,
+    }, { onConflict: "slug" });
+  }
+
+  console.log("✅ Seed concluído com sucesso!");
+}
