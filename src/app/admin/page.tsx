@@ -109,9 +109,36 @@ export default function AdminPage() {
     setIsLoading(false);
   }, []);
 
+  // Check stored auth session on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isAuth = localStorage.getItem("emporio_admin_auth") === "true";
+      if (isAuth) {
+        setIsAuthenticated(true);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (isAuthenticated) loadData();
   }, [isAuthenticated, loadData]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === "admin123") {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("emporio_admin_auth", "true");
+      }
+      setIsAuthenticated(true);
+    }
+  };
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("emporio_admin_auth");
+    }
+    setIsAuthenticated(false);
+  };
 
   // ── AUTH ─────────────────────────────────
   if (!isAuthenticated) {
@@ -125,13 +152,7 @@ export default function AdminPage() {
           <p className="text-xs text-slate-500 font-montserrat">
             Empório Caminho da Fé &mdash; Senha demo: <strong>admin123</strong>
           </p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (passwordInput === "admin123") setIsAuthenticated(true);
-            }}
-            className="space-y-3 font-montserrat"
-          >
+          <form onSubmit={handleLogin} className="space-y-3 font-montserrat">
             <input
               type="password"
               placeholder="Senha de administrador"
@@ -292,7 +313,7 @@ export default function AdminPage() {
           {saveStatus === "saved" && <span className="text-xs text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Salvo!</span>}
           {saveStatus === "error" && <span className="text-xs text-red-400">Erro ao salvar</span>}
           <Link href="/" className="text-xs font-semibold text-slate-200 hover:text-[#D2B48C] bg-white/10 px-3 py-1.5 rounded-full">Ver Loja</Link>
-          <button onClick={() => setIsAuthenticated(false)} className="p-2 text-slate-300 hover:text-red-400"><LogOut className="w-5 h-5" /></button>
+          <button onClick={handleLogout} className="p-2 text-slate-300 hover:text-red-400" title="Sair"><LogOut className="w-5 h-5" /></button>
         </div>
       </header>
 

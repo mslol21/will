@@ -88,6 +88,16 @@ export default function CaixaPage() {
     setLoading(false);
   }, []);
 
+  // Check stored caixa session on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isAuth = localStorage.getItem("emporio_caixa_auth") === "true";
+      if (isAuth) {
+        setAuthenticated(true);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (authenticated) loadData();
   }, [authenticated, loadData]);
@@ -103,12 +113,22 @@ export default function CaixaPage() {
     setPin(next);
     if (next.length === 4) {
       if (next === PIN) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("emporio_caixa_auth", "true");
+        }
         setAuthenticated(true);
       } else {
         setPinError(true);
         setTimeout(() => { setPin(""); setPinError(false); }, 800);
       }
     }
+  };
+
+  const handleLock = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("emporio_caixa_auth");
+    }
+    setAuthenticated(false);
   };
 
   // ── Cart ─────────────────────────────────────────────────────
@@ -300,7 +320,7 @@ export default function CaixaPage() {
         <div className="flex items-center gap-4 text-xs text-slate-300">
           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{currentTime}</span>
           <span className="hidden sm:block text-slate-400">{today()}</span>
-          <button onClick={() => setAuthenticated(false)} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white"><Lock className="w-4 h-4" /></button>
+          <button onClick={handleLock} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white" title="Bloquear Caixa"><Lock className="w-4 h-4" /></button>
         </div>
       </header>
 
