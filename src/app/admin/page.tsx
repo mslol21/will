@@ -45,7 +45,7 @@ import {
 } from "@/lib/supabase";
 import { Product, Category } from "@/types";
 import { formatCurrency, slugify } from "@/lib/utils";
-import { Zap, Database, Keyboard, ExternalLink, RefreshCw } from "lucide-react";
+import { Zap, Database, Keyboard, ExternalLink, RefreshCw, Upload } from "lucide-react";
 
 const MEI_ANNUAL_LIMIT = 81000.0;
 
@@ -94,6 +94,19 @@ export default function AdminPage() {
   const [lancDesc, setLancDesc] = useState("");
   const [lancValor, setLancValor] = useState("");
   const [lancData, setLancData] = useState(new Date().toISOString().slice(0, 10));
+
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (val: string) => void) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setter(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Load data from Supabase
   const loadData = useCallback(async () => {
@@ -794,8 +807,29 @@ export default function AdminPage() {
                 </div>
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">URL da Imagem:</label>
-                <input type="text" value={prodImage} onChange={(e) => setProdImage(e.target.value)} placeholder="https://images.unsplash.com/..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                <label className="block font-bold text-slate-700 mb-1">Foto do Produto:</label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="flex-1 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 border border-dashed border-slate-300 rounded-xl cursor-pointer flex items-center justify-center gap-2 text-slate-700 text-xs font-bold transition-all">
+                      <Upload className="w-4 h-4 text-[#8B5E34]" />
+                      <span>Carregar Foto do Dispositivo</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageFileUpload(e, setProdImage)} />
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase shrink-0">Ou URL:</span>
+                    <input type="text" value={prodImage} onChange={(e) => setProdImage(e.target.value)} placeholder="https://images.unsplash.com/..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+                  </div>
+                  {prodImage && (
+                    <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mt-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={prodImage} alt="Pré-visualização" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setProdImage("")} className="absolute top-2 right-2 p-1.5 bg-black/70 text-white rounded-full hover:bg-red-600 transition-colors" title="Remover Foto">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Descrição:</label>
@@ -826,8 +860,29 @@ export default function AdminPage() {
                 <input type="text" required value={catName} onChange={(e) => setCatName(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">URL da Imagem:</label>
-                <input type="text" value={catImage} onChange={(e) => setCatImage(e.target.value)} placeholder="https://images.unsplash.com/..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                <label className="block font-bold text-slate-700 mb-1">Foto da Categoria:</label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="flex-1 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 border border-dashed border-slate-300 rounded-xl cursor-pointer flex items-center justify-center gap-2 text-slate-700 text-xs font-bold transition-all">
+                      <Upload className="w-4 h-4 text-[#8B5E34]" />
+                      <span>Carregar Foto do Dispositivo</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageFileUpload(e, setCatImage)} />
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase shrink-0">Ou URL:</span>
+                    <input type="text" value={catImage} onChange={(e) => setCatImage(e.target.value)} placeholder="https://images.unsplash.com/..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+                  </div>
+                  {catImage && (
+                    <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mt-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={catImage} alt="Pré-visualização" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setCatImage("")} className="absolute top-2 right-2 p-1.5 bg-black/70 text-white rounded-full hover:bg-red-600 transition-colors" title="Remover Foto">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Descrição:</label>
