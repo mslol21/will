@@ -28,7 +28,13 @@ import {
   CheckCircle2,
   Heart,
   MessageCircle,
+  Database,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { DashboardView } from "@/components/admin/DashboardView";
+import { StockView } from "@/components/admin/StockView";
+import { FinanceView } from "@/components/admin/FinanceView";
+import { VirtualAssistant } from "@/components/admin/VirtualAssistant";
 import {
   getProdutos,
   insertProduto,
@@ -52,8 +58,6 @@ const MEI_ANNUAL_LIMIT = 81000.0;
 type Tab = "dashboard" | "produtos" | "categorias" | "estoque" | "financeiro" | "oracoes" | "configuracoes";
 
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"" | "saving" | "saved" | "error">("");
@@ -124,29 +128,11 @@ export default function AdminPage() {
     setIsLoading(false);
   }, []);
 
-  // Check stored auth session on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isAuth = localStorage.getItem("emporio_admin_auth") === "true";
-      if (isAuth) {
-        setIsAuthenticated(true);
-      }
-    }
-  }, []);
+    loadData();
+  }, [loadData]);
 
-  useEffect(() => {
-    if (isAuthenticated) loadData();
-  }, [isAuthenticated, loadData]);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordInput === "admin123") {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("emporio_admin_auth", "true");
-      }
-      setIsAuthenticated(true);
-    }
-  };
 
   const [isSeeding, setIsSeeding] = useState(false);
 
@@ -170,7 +156,6 @@ export default function AdminPage() {
   // Teclas de atalho (Alt + 1..5, Alt+N, Alt+P)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isAuthenticated) return;
       if (e.altKey) {
         if (e.key === "1") { setActiveTab("dashboard"); e.preventDefault(); }
         if (e.key === "2") { setActiveTab("produtos"); e.preventDefault(); }
@@ -183,46 +168,12 @@ export default function AdminPage() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isAuthenticated]);
+  }, []);
 
-  const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("emporio_admin_auth");
-    }
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    const { logout } = await import("../login/actions");
+    await logout();
   };
-
-  // ── AUTH ─────────────────────────────────
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-[#1F2A44] flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-center border border-[#D2B48C]/30">
-          <div className="w-16 h-16 rounded-full bg-[#D2B48C]/20 text-[#8B5E34] flex items-center justify-center mx-auto">
-            <Lock className="w-8 h-8" />
-          </div>
-          <h2 className="font-playfair text-2xl font-bold text-[#1F2A44]">Painel Gerencial</h2>
-          <p className="text-xs text-slate-500 font-montserrat">
-            Empório Caminho da Fé &mdash; Senha demo: <strong>admin123</strong>
-          </p>
-          <form onSubmit={handleLogin} className="space-y-3 font-montserrat">
-            <input
-              type="password"
-              placeholder="Senha de administrador"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl bg-slate-100 border border-slate-200 text-xs text-center text-[#1F2A44] focus:outline-none focus:border-[#8B5E34]"
-            />
-            <button
-              type="submit"
-              className="w-full py-3.5 rounded-2xl bg-[#8B5E34] text-white font-bold text-xs uppercase tracking-wider hover:bg-[#1F2A44] transition-colors shadow-md"
-            >
-              Acessar Painel
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
 
   // ── FINANCIAL CALCULATIONS ─────────────────────────────────
   const totalReceitas = lancamentos.filter((l) => l.tipo === "receita").reduce((s, l) => s + parseFloat(l.valor), 0);
@@ -297,11 +248,6 @@ export default function AdminPage() {
     loadData();
   };
 
-  const handleStockChange = async (product: Product, delta: number) => {
-    const newStock = Math.max(0, product.stock + delta);
-    setProductsList((prev) => prev.map((p) => p.id === product.id ? { ...p, stock: newStock } : p));
-    await updateStock(product.id, newStock);
-  };
 
   // ── CATEGORY CRUD ────────────────────────────────────────────
   const handleOpenEditCategory = (cat: Category) => {
@@ -348,9 +294,9 @@ export default function AdminPage() {
 
   // ── RENDER ───────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-montserrat">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#141C2E] flex flex-col font-montserrat transition-colors">
       {/* Header */}
-      <header className="bg-[#1F2A44] text-white py-4 px-6 flex items-center justify-between border-b border-[#D2B48C]/30">
+      <header className="bg-[#1F2A44] dark:bg-slate-950 text-white py-4 px-6 flex items-center justify-between border-b border-[#D2B48C]/30 dark:border-slate-800">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-[#8B5E34] text-[#D2B48C] flex items-center justify-center shadow-md">
             <Sparkles className="w-5 h-5" />
@@ -365,6 +311,7 @@ export default function AdminPage() {
           {saveStatus === "saved" && <span className="text-xs text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Salvo!</span>}
           {saveStatus === "error" && <span className="text-xs text-red-400">Erro ao salvar</span>}
           <Link href="/" className="text-xs font-semibold text-slate-200 hover:text-[#D2B48C] bg-white/10 px-3 py-1.5 rounded-full">Ver Loja</Link>
+          <ThemeToggle />
           <button onClick={handleLogout} className="p-2 text-slate-300 hover:text-red-400" title="Sair"><LogOut className="w-5 h-5" /></button>
         </div>
       </header>
@@ -450,51 +397,13 @@ export default function AdminPage() {
 
           {/* DASHBOARD */}
           {activeTab === "dashboard" && (
-            <div className="space-y-8">
-              <div>
-                <h2 className="font-playfair text-2xl font-bold text-[#1F2A44]">Resumo Gerencial</h2>
-                <p className="text-xs text-slate-500">Dados em tempo real do Supabase</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {[
-                  { icon: Package, label: "Produtos Ativos", value: productsList.filter((p) => p.isActive).length.toString(), color: "bg-blue-50 text-blue-600" },
-                  { icon: DollarSign, label: "Valor em Estoque", value: formatCurrency(stockValue), color: "bg-amber-50 text-[#8B5E34]" },
-                  { icon: TrendingUp, label: "Receitas Registradas", value: formatCurrency(totalReceitas), color: "bg-emerald-50 text-emerald-700" },
-                  { icon: Percent, label: "Teto MEI Atingido", value: `${meiUsed}%`, color: "bg-purple-50 text-purple-700" },
-                ].map(({ icon: Icon, label, value, color }) => (
-                  <div key={label} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${color}`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-slate-400 font-bold uppercase block">{label}</span>
-                      <span className="font-playfair text-2xl font-bold text-[#1F2A44]">{value}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* MEI Progress */}
-              <div className="bg-white rounded-3xl p-6 border border-[#D2B48C]/40 shadow-sm space-y-3">
-                <div className="flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-[#8B5E34]" />
-                  <h3 className="font-playfair font-bold text-lg text-[#1F2A44]">Teto MEI Anual (R$ 81.000,00)</h3>
-                  <span className={`ml-auto px-3 py-1 rounded-full text-[10px] font-bold ${parseFloat(meiUsed) < 80 ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>
-                    {parseFloat(meiUsed) < 80 ? "Dentro do Limite" : "Atenção: Limite Próximo!"}
-                  </span>
-                </div>
-                <div className="flex justify-between text-xs text-slate-600 font-semibold">
-                  <span>Receitas: {formatCurrency(totalReceitas)}</span>
-                  <span>Margem Restante: {formatCurrency(meiRemaining)}</span>
-                </div>
-                <div className="w-full h-4 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${parseFloat(meiUsed) < 60 ? "bg-emerald-500" : parseFloat(meiUsed) < 80 ? "bg-amber-500" : "bg-red-500"}`}
-                    style={{ width: `${Math.min(parseFloat(meiUsed), 100)}%` }}
-                  />
-                </div>
-              </div>
-            </div>
+            <DashboardView
+              productsList={productsList}
+              stockValue={stockValue}
+              totalReceitas={totalReceitas}
+              meiUsed={meiUsed}
+              meiRemaining={meiRemaining}
+            />
           )}
 
           {/* PRODUTOS */}
@@ -586,143 +495,31 @@ export default function AdminPage() {
 
           {/* ESTOQUE */}
           {activeTab === "estoque" && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="font-playfair text-2xl font-bold text-[#1F2A44]">Controle de Estoque</h2>
-                <p className="text-xs text-slate-500">Ajuste rápido de quantidades — salvo no Supabase em tempo real</p>
-              </div>
-              <div className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="bg-slate-100 text-slate-600 text-[11px] uppercase font-bold border-b border-slate-200">
-                        <th className="p-4">Produto</th>
-                        <th className="p-4">Categoria</th>
-                        <th className="p-4">Preço</th>
-                        <th className="p-4">Estoque</th>
-                        <th className="p-4">Status</th>
-                        <th className="p-4 text-center">Ajuste</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs">
-                      {productsList.map((p) => (
-                        <tr key={p.id} className="hover:bg-slate-50">
-                          <td className="p-4 font-bold text-[#1F2A44] max-w-[200px] truncate">{p.name}</td>
-                          <td className="p-4 text-slate-500 uppercase text-[10px] font-semibold">{p.category}</td>
-                          <td className="p-4 font-bold">{formatCurrency(p.price)}</td>
-                          <td className="p-4 font-bold text-lg">{p.stock}</td>
-                          <td className="p-4">
-                            {p.stock === 0 ? (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-800 flex items-center gap-1 w-fit"><AlertTriangle className="w-3 h-3" /> Esgotado</span>
-                            ) : p.stock <= 5 ? (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1 w-fit"><AlertTriangle className="w-3 h-3" /> Baixo</span>
-                            ) : (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">OK</span>
-                            )}
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center justify-center gap-1">
-                              {[-5, -1, +1, +5].map((d) => (
-                                <button key={d} onClick={() => handleStockChange(p, d)} className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${d < 0 ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-[#8B5E34] text-white hover:bg-[#1F2A44]"}`}>{d > 0 ? "+" : ""}{d}</button>
-                              ))}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            <StockView 
+              productsList={productsList} 
+              onStockUpdate={loadData} 
+            />
           )}
 
           {/* FINANCEIRO */}
           {activeTab === "financeiro" && (
-            <div className="space-y-8">
-              <div>
-                <h2 className="font-playfair text-2xl font-bold text-[#1F2A44]">Painel Financeiro & Projeção MEI</h2>
-                <p className="text-xs text-slate-500">Receitas, custos, lucro e limite fiscal do MEI (R$ 81.000/ano)</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                {[
-                  { label: "Receitas Brutas", value: formatCurrency(totalReceitas), color: "text-emerald-700", icon: ArrowUpRight },
-                  { label: "Custos & Despesas", value: formatCurrency(totalCustos), color: "text-red-600", icon: Calculator },
-                  { label: "Lucro Líquido", value: formatCurrency(lucroLiquido), color: lucroLiquido >= 0 ? "text-[#8B5E34]" : "text-red-600", icon: TrendingUp },
-                ].map(({ label, value, color, icon: Icon }) => (
-                  <div key={label} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-2">
-                    <span className="text-xs font-bold text-slate-400 uppercase block">{label}</span>
-                    <span className={`font-playfair text-3xl font-bold block ${color}`}>{value}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Add lancamento form */}
-              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-                <h3 className="font-playfair text-xl font-bold text-[#1F2A44]">Lançar Receita ou Despesa</h3>
-                <form onSubmit={handleSaveLancamento} className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs font-montserrat items-end">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Tipo:</label>
-                    <select value={lancTipo} onChange={(e) => setLancTipo(e.target.value as any)} className="w-full px-3 py-2.5 bg-slate-50 border rounded-xl">
-                      <option value="receita">💚 Receita</option>
-                      <option value="custo">🔴 Custo (CMV)</option>
-                      <option value="despesa">🟠 Despesa</option>
-                    </select>
-                  </div>
-                  <div className="sm:col-span-1">
-                    <label className="block font-bold text-slate-700 mb-1">Descrição:</label>
-                    <input type="text" required value={lancDesc} onChange={(e) => setLancDesc(e.target.value)} placeholder="Ex: Venda Cesta Mantiqueira" className="w-full px-3 py-2.5 bg-slate-50 border rounded-xl" />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Valor (R$):</label>
-                    <input type="number" step="0.01" required value={lancValor} onChange={(e) => setLancValor(e.target.value)} placeholder="0.00" className="w-full px-3 py-2.5 bg-slate-50 border rounded-xl" />
-                  </div>
-                  <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#8B5E34] text-white font-bold hover:bg-[#1F2A44] flex items-center justify-center gap-2 transition-colors shadow-sm">
-                    <Save className="w-4 h-4" /> Lançar
-                  </button>
-                </form>
-              </div>
-
-              {/* Lancamentos Table */}
-              <div className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="bg-slate-100 text-slate-500 uppercase text-[11px] font-bold border-b border-slate-200">
-                        <th className="p-4 text-left">Data</th>
-                        <th className="p-4 text-left">Descrição</th>
-                        <th className="p-4 text-left">Tipo</th>
-                        <th className="p-4 text-right">Valor</th>
-                        <th className="p-4 text-center">Ação</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {lancamentos.length === 0 ? (
-                        <tr><td colSpan={5} className="p-8 text-center text-slate-400">Nenhum lançamento ainda. Use o formulário acima para começar.</td></tr>
-                      ) : lancamentos.map((l) => (
-                        <tr key={l.id} className="hover:bg-slate-50">
-                          <td className="p-4 text-slate-500">{new Date(l.data).toLocaleDateString("pt-BR")}</td>
-                          <td className="p-4 font-bold text-slate-800">{l.descricao}</td>
-                          <td className="p-4">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${l.tipo === "receita" ? "bg-emerald-100 text-emerald-800" : l.tipo === "custo" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
-                              {l.tipo}
-                            </span>
-                          </td>
-                          <td className={`p-4 text-right font-bold ${l.tipo === "receita" ? "text-emerald-700" : "text-red-600"}`}>
-                            {l.tipo === "receita" ? "+" : "-"} {formatCurrency(parseFloat(l.valor))}
-                          </td>
-                          <td className="p-4 text-center">
-                            <button onClick={() => handleDeleteLancamento(l.id)} className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            <FinanceView
+              lancamentos={lancamentos}
+              onAddLancamento={async (e, tipo, descricao, valor, data) => {
+                e.preventDefault();
+                if (!descricao || !valor) return;
+                setSaveStatus("saving");
+                const { error } = await insertLancamento({ tipo, descricao, valor: parseFloat(valor), data });
+                if (error) { setSaveStatus("error"); return; }
+                setSaveStatus("saved");
+                setTimeout(() => setSaveStatus(""), 2000);
+                loadData();
+              }}
+              onDeleteLancamento={async (id) => {
+                await deleteLancamento(id);
+                loadData();
+              }}
+            />
           )}
 
           {/* PEDIDOS DE ORAÇÃO */}
@@ -898,6 +695,9 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      {/* 🤖 ASSISTENTE VIRTUAL IA */}
+      <VirtualAssistant />
     </div>
   );
 }

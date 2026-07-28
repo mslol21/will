@@ -8,9 +8,6 @@ import { HeroSection } from "@/sections/home/HeroSection";
 import { CategoriesSection } from "@/sections/home/CategoriesSection";
 import { FeaturedSection } from "@/sections/home/FeaturedSection";
 import { SpecialBaskets } from "@/sections/home/SpecialBaskets";
-import { PeregrinoSection } from "@/sections/home/PeregrinoSection";
-import { StorySection } from "@/sections/home/StorySection";
-import { TestimonialsSection } from "@/sections/home/TestimonialsSection";
 import { LocationSection } from "@/sections/home/LocationSection";
 
 export default function HomePage() {
@@ -34,15 +31,6 @@ export default function HomePage() {
 
         {/* 4. Chamada Direta: Monte Sua Cesta Personalizada */}
         <SpecialBaskets />
-
-        {/* 5. Linha Peregrino & Fé */}
-        <PeregrinoSection />
-
-        {/* 6. Nossa História & Tradição Mineira */}
-        <StorySection />
-
-        {/* 7. Depoimentos & Prova Social */}
-        <TestimonialsSection />
 
         {/* 8. Nossa Loja Física & Contato */}
         <LocationSection />

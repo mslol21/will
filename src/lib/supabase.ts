@@ -1,11 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/client";
 import type { Product, Category, GiftBasket } from "@/types";
 
-const supabaseUrl = "https://efcrctysxrwnrwlwriiy.supabase.co";
-const supabaseAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmY3JjdHlzeHJ3bnJ3bHdyaWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NDc5NDksImV4cCI6MjEwMDQyMzk0OX0.zwxyS0EE9rLjFcvaYS9Trvt53QUdC4T5LjVCvI7dV5s";
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient();
 
 // ─── PEDIDOS DE ORAÇÃO ───────────────────────────────────────
 export async function submitPrayerRequest(nome: string, oracao: string) {
@@ -129,6 +125,51 @@ export async function updateStock(id: string, stock: number) {
     .update({ stock })
     .eq("id", id);
   return { data, error };
+}
+
+export async function adjustStock(
+  id: string, 
+  currentStock: number, 
+  newStock: number, 
+  motivo: string = "Ajuste manual"
+) {
+  const delta = newStock - currentStock;
+  const tipo = delta > 0 ? "entrada" : delta < 0 ? "saida" : "ajuste";
+  const absQty = Math.abs(delta);
+
+  if (absQty === 0) return { data: null, error: null };
+
+  const { data: userData } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from("produtos")
+    .update({ stock: newStock })
+    .eq("id", id);
+
+  if (!error) {
+    await supabase.from("movimentacao_estoque").insert([{
+      produto_id: id,
+      tipo,
+      quantidade: absQty,
+      motivo,
+      responsavel_id: userData.user?.id
+    }]);
+  }
+
+  return { data, error };
+}
+
+export async function getMovimentacoes() {
+  const { data, error } = await supabase
+    .from("movimentacao_estoque")
+    .select(`
+      id, tipo, quantidade, motivo, created_at,
+      produto:produtos(name),
+      responsavel:perfis(nome)
+    `)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  return { data: data || [], error };
 }
 
 export async function deleteProduto(id: string) {

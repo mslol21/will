@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Montserrat } from "next/font/google";
 import "./globals.css";
 import { INITIAL_STORE_SETTINGS } from "@/lib/mockData";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "sonner";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -105,15 +107,18 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="pt-BR" className={`${playfair.variable} ${montserrat.variable}`}>
+    <html lang="pt-BR" suppressHydrationWarning className={`${playfair.variable} ${montserrat.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdStore) }}
         />
       </head>
-      <body className="font-montserrat bg-emporio-beige text-emporio-navy antialiased">
-        {children}
+      <body className="font-montserrat bg-emporio-beige dark:bg-emporio-navy-dark text-emporio-navy dark:text-slate-200 antialiased transition-colors">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          {children}
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -22,7 +22,11 @@ import {
   Clock,
   Zap,
   AlertTriangle,
+  Wallet,
+  Coins,
+  ChevronDown,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { getProdutos, getCategorias, updateStock, insertLancamento, insertPedido } from "@/lib/supabase";
 import { Product, Category } from "@/types";
 import { formatCurrency } from "@/lib/utils";
@@ -57,10 +61,6 @@ function today() {
 }
 
 export default function CaixaPage() {
-  // ── Auth ────────────────────────────────────────────────────
-  const [authenticated, setAuthenticated] = useState(false);
-  const [pin, setPin] = useState("");
-  const [pinError, setPinError] = useState(false);
 
   // ── Data ────────────────────────────────────────────────────
   const [products, setProducts] = useState<Product[]>([]);
@@ -88,47 +88,18 @@ export default function CaixaPage() {
     setLoading(false);
   }, []);
 
-  // Check stored caixa session on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isAuth = localStorage.getItem("emporio_caixa_auth") === "true";
-      if (isAuth) {
-        setAuthenticated(true);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (authenticated) loadData();
-  }, [authenticated, loadData]);
+    loadData();
+  }, [loadData]);
 
   useEffect(() => {
     const t = setInterval(() => setCurrentTime(now()), 30000);
     return () => clearInterval(t);
   }, []);
 
-  // ── PIN Auth ─────────────────────────────────────────────────
-  const handlePin = (digit: string) => {
-    const next = pin + digit;
-    setPin(next);
-    if (next.length === 4) {
-      if (next === PIN) {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("emporio_caixa_auth", "true");
-        }
-        setAuthenticated(true);
-      } else {
-        setPinError(true);
-        setTimeout(() => { setPin(""); setPinError(false); }, 800);
-      }
-    }
-  };
-
-  const handleLock = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("emporio_caixa_auth");
-    }
-    setAuthenticated(false);
+  const handleLock = async () => {
+    const { logout } = await import("../login/actions");
+    await logout();
   };
 
   // ── Cart ─────────────────────────────────────────────────────
@@ -207,60 +178,6 @@ export default function CaixaPage() {
     }
   };
 
-  // ─────────────────────────────────────────────────────────────
-  // RENDER: PIN
-  // ─────────────────────────────────────────────────────────────
-  if (!authenticated) {
-    return (
-      <div className="min-h-screen bg-[#1F2A44] flex flex-col items-center justify-center p-6 font-montserrat">
-        <div className="bg-white rounded-3xl p-8 w-full max-w-xs shadow-2xl text-center space-y-6">
-          <div className="w-16 h-16 rounded-full bg-[#1F2A44] text-[#D2B48C] flex items-center justify-center mx-auto">
-            <Lock className="w-8 h-8" />
-          </div>
-          <div>
-            <h1 className="font-playfair text-2xl font-bold text-[#1F2A44]">Frente de Caixa</h1>
-            <p className="text-xs text-slate-400 mt-1">Empório Caminho da Fé</p>
-          </div>
-
-          {/* PIN dots */}
-          <div className="flex justify-center gap-3">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className={`w-4 h-4 rounded-full border-2 transition-all ${
-                  i < pin.length
-                    ? pinError ? "bg-red-500 border-red-500" : "bg-[#8B5E34] border-[#8B5E34]"
-                    : "border-slate-300"
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Numpad */}
-          <div className="grid grid-cols-3 gap-2">
-            {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((d) => (
-              <button
-                key={d}
-                onClick={() => {
-                  if (d === "⌫") setPin((p) => p.slice(0, -1));
-                  else if (d !== "") handlePin(d);
-                }}
-                disabled={d === ""}
-                className={`py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 ${
-                  d === "" ? "invisible" :
-                  d === "⌫" ? "bg-slate-100 text-slate-500 hover:bg-slate-200" :
-                  "bg-slate-100 text-[#1F2A44] hover:bg-[#1F2A44] hover:text-[#D2B48C]"
-                }`}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-          <p className="text-[10px] text-slate-400">PIN demo: 1234</p>
-        </div>
-      </div>
-    );
-  }
 
   // ─────────────────────────────────────────────────────────────
   // RENDER: SUCESSO
@@ -304,10 +221,10 @@ export default function CaixaPage() {
   // RENDER: CAIXA PRINCIPAL
   // ─────────────────────────────────────────────────────────────
   return (
-    <div className="h-screen flex flex-col bg-slate-100 font-montserrat overflow-hidden">
+    <div className="h-screen flex flex-col bg-slate-100 dark:bg-[#141C2E] font-montserrat overflow-hidden transition-colors">
 
       {/* ── Top Bar ─────────────────────────────────────────── */}
-      <header className="bg-[#1F2A44] text-white px-5 py-3 flex items-center justify-between shrink-0 border-b border-[#D2B48C]/20">
+      <header className="bg-[#1F2A44] dark:bg-slate-950 text-white px-5 py-3 flex items-center justify-between shrink-0 border-b border-[#D2B48C]/20 dark:border-slate-800">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-[#8B5E34] flex items-center justify-center shrink-0">
             <Zap className="w-5 h-5 text-[#D2B48C]" />
@@ -320,7 +237,8 @@ export default function CaixaPage() {
         <div className="flex items-center gap-4 text-xs text-slate-300">
           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{currentTime}</span>
           <span className="hidden sm:block text-slate-400">{today()}</span>
-          <button onClick={handleLock} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white" title="Bloquear Caixa"><Lock className="w-4 h-4" /></button>
+          <ThemeToggle />
+          <button onClick={handleLock} className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-red-400" title="Sair"><Lock className="w-4 h-4" /></button>
         </div>
       </header>
 
