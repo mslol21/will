@@ -223,6 +223,7 @@ export async function insertPedido(pedido: {
   itens: any[];
   total: number;
   mensagem?: string;
+  pontos_ganhos?: number;
 }) {
   const { data, error } = await supabase
     .from("pedidos")

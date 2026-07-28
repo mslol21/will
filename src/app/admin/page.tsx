@@ -29,6 +29,7 @@ import {
   Heart,
   MessageCircle,
   Database,
+  Users,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { DashboardView } from "@/components/admin/DashboardView";
@@ -52,7 +53,7 @@ import {
 } from "@/lib/supabase";
 import { Product, Category } from "@/types";
 import { formatCurrency, slugify } from "@/lib/utils";
-import { Zap, Database, Keyboard, ExternalLink, RefreshCw, Upload } from "lucide-react";
+import { Zap, Keyboard, ExternalLink, RefreshCw, Upload } from "lucide-react";
 
 const MEI_ANNUAL_LIMIT = 81000.0;
 
