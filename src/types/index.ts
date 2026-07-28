@@ -119,3 +119,19 @@ export interface StoreSettings {
   metaPixelId?: string;
   googleAnalyticsId?: string;
 }
+
+export interface Cliente {
+  id: string;
+  nome: string;
+  email?: string;
+  telefone?: string;
+  cidade?: string;
+  total_comprado: number;
+  is_vip: boolean;
+  ultima_compra?: string;
+  data_nascimento?: string;
+  pontos_fidelidade: number;
+  nivel_cliente: "Bronze" | "Prata" | "Ouro" | "Diamante";
+  preferencias_json?: any;
+  created_at: string;
+}

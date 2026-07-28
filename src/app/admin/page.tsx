@@ -35,6 +35,7 @@ import { DashboardView } from "@/components/admin/DashboardView";
 import { StockView } from "@/components/admin/StockView";
 import { FinanceView } from "@/components/admin/FinanceView";
 import { VirtualAssistant } from "@/components/admin/VirtualAssistant";
+import { CrmView } from "@/components/admin/CrmView";
 import {
   getProdutos,
   insertProduto,
@@ -55,7 +56,7 @@ import { Zap, Database, Keyboard, ExternalLink, RefreshCw, Upload } from "lucide
 
 const MEI_ANNUAL_LIMIT = 81000.0;
 
-type Tab = "dashboard" | "produtos" | "categorias" | "estoque" | "financeiro" | "oracoes" | "configuracoes";
+type Tab = "dashboard" | "produtos" | "categorias" | "estoque" | "financeiro" | "crm" | "oracoes" | "configuracoes";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
@@ -162,6 +163,7 @@ export default function AdminPage() {
         if (e.key === "3") { setActiveTab("categorias"); e.preventDefault(); }
         if (e.key === "4") { setActiveTab("estoque"); e.preventDefault(); }
         if (e.key === "5") { setActiveTab("financeiro"); e.preventDefault(); }
+        if (e.key === "6") { setActiveTab("crm"); e.preventDefault(); }
         if (e.key === "p" || e.key === "P") { window.location.href = "/caixa"; e.preventDefault(); }
         if (e.key === "n" || e.key === "N") { handleOpenNewProduct(); e.preventDefault(); }
       }
@@ -325,6 +327,7 @@ export default function AdminPage() {
             ["categorias", Layers, `Categorias (${categoriesList.length})`],
             ["estoque", BarChart3, "Controle de Estoque"],
             ["financeiro", Calculator, "Financeiro & MEI"],
+            ["crm", Users, "CRM & Clientes"],
             ["oracoes", Heart, `Pedidos de Oração (${oracoes.length})`],
           ] as [Tab, any, string][]).map(([tab, Icon, label]) => (
             <button
@@ -521,6 +524,9 @@ export default function AdminPage() {
               }}
             />
           )}
+
+          {/* CRM */}
+          {activeTab === "crm" && <CrmView />}
 
           {/* PEDIDOS DE ORAÇÃO */}
           {activeTab === "oracoes" && (

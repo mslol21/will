@@ -231,6 +231,38 @@ export async function insertPedido(pedido: {
   return { data, error };
 }
 
+// ─── CRM (CLIENTES) ──────────────────────────────────────────
+export async function getClientes() {
+  const { data, error } = await supabase
+    .from("clientes")
+    .select("*")
+    .order("nome");
+  return { data: data || [], error };
+}
+
+export async function insertCliente(cliente: {
+  nome: string;
+  telefone?: string;
+  email?: string;
+  cidade?: string;
+  data_nascimento?: string;
+}) {
+  const { data, error } = await supabase
+    .from("clientes")
+    .insert([cliente])
+    .select();
+  return { data, error };
+}
+
+export async function updateCliente(id: string, cliente: any) {
+  const { data, error } = await supabase
+    .from("clientes")
+    .update(cliente)
+    .eq("id", id)
+    .select();
+  return { data, error };
+}
+
 // ─── AUTOMATIC SEED ──────────────────────────────────────────
 import { CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 

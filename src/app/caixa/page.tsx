@@ -25,10 +25,11 @@ import {
   Wallet,
   Coins,
   ChevronDown,
+  Users,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { getProdutos, getCategorias, updateStock, insertLancamento, insertPedido } from "@/lib/supabase";
-import { Product, Category } from "@/types";
+import { getProdutos, getCategorias, updateStock, insertLancamento, insertPedido, getClientes } from "@/lib/supabase";
+import { Product, Category, Cliente } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import { buildPlugPagDeeplink, generateThermalReceipt } from "@/lib/pagbank";
 
@@ -65,6 +66,7 @@ export default function CaixaPage() {
   // ── Data ────────────────────────────────────────────────────
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
 
   // ── UI State ────────────────────────────────────────────────
@@ -77,14 +79,18 @@ export default function CaixaPage() {
   const [cashReceived, setCashReceived] = useState("");
   const [processing, setProcessing] = useState(false);
   const [currentTime, setCurrentTime] = useState(now());
+  const [linkedClient, setLinkedClient] = useState<Cliente | null>(null);
+  const [clientSearch, setClientSearch] = useState("");
+  const [showClientSelector, setShowClientSelector] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // ── Load ────────────────────────────────────────────────────
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [prods, cats] = await Promise.all([getProdutos(), getCategorias()]);
+    const [prods, cats, clis] = await Promise.all([getProdutos(), getCategorias(), getClientes()]);
     setProducts(prods.filter((p) => p.isActive && p.stock > 0));
     setCategories(cats);
+    setClientes(clis.data || []);
     setLoading(false);
   }, []);
 
@@ -130,6 +136,7 @@ export default function CaixaPage() {
     setCart([]);
     setDiscount(0);
     setCashReceived("");
+    setLinkedClient(null);
     setScreen("caixa");
   };
 
@@ -167,8 +174,11 @@ export default function CaixaPage() {
       });
       // Register order
       await insertPedido({
+        nome_cliente: linkedClient ? linkedClient.nome : undefined,
+        telefone: linkedClient ? (linkedClient.telefone || undefined) : undefined,
         itens: cart.map((i) => ({ id: i.product.id, name: i.product.name, qty: i.qty, price: i.unitPrice })),
         total,
+        pontos_ganhos: linkedClient ? Math.floor(total / 10) : 0, // 1 ponto a cada R$ 10
       });
       setScreen("sucesso");
     } catch (err) {
@@ -412,6 +422,42 @@ export default function CaixaPage() {
                 <div className="p-4 space-y-3">
                   {/* Subtotal / Discount / Total */}
                   <div className="space-y-1.5 text-sm">
+                    {/* Vincular Cliente */}
+                    {!linkedClient ? (
+                      <div className="relative mb-2">
+                        <button onClick={() => setShowClientSelector(!showClientSelector)} className="w-full py-2 bg-slate-50 border border-slate-200 border-dashed rounded-lg text-xs text-slate-500 font-bold hover:bg-slate-100 flex items-center justify-center gap-2">
+                          <Users className="w-4 h-4" /> Vincular Cliente
+                        </button>
+                        {showClientSelector && (
+                          <div className="absolute bottom-full mb-1 left-0 w-full bg-white border border-slate-200 rounded-lg shadow-xl p-2 z-50">
+                            <input 
+                              type="text" 
+                              placeholder="Buscar cliente..." 
+                              className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded mb-2 outline-none" 
+                              value={clientSearch}
+                              onChange={(e) => setClientSearch(e.target.value)}
+                            />
+                            <div className="max-h-32 overflow-y-auto space-y-1">
+                              {clientes.filter(c => c.nome.toLowerCase().includes(clientSearch.toLowerCase())).map(c => (
+                                <button key={c.id} onClick={() => { setLinkedClient(c); setShowClientSelector(false); }} className="w-full text-left p-2 hover:bg-slate-50 rounded text-xs">
+                                  <div className="font-bold">{c.nome}</div>
+                                  <div className="text-[10px] text-slate-400">Nível {c.nivel_cliente} • {c.pontos_fidelidade} pts</div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="mb-2 p-2 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center justify-between">
+                        <div>
+                          <div className="text-xs font-bold text-emerald-800 flex items-center gap-1"><Users className="w-3 h-3" /> {linkedClient.nome}</div>
+                          <div className="text-[10px] text-emerald-600 font-semibold">{linkedClient.pontos_fidelidade} pts disponíveis (Vale R$ {(linkedClient.pontos_fidelidade * 0.1).toFixed(2)})</div>
+                        </div>
+                        <button onClick={() => setLinkedClient(null)} className="p-1 hover:bg-emerald-100 rounded-lg"><X className="w-4 h-4 text-emerald-600" /></button>
+                      </div>
+                    )}
+
                     <div className="flex justify-between text-slate-500">
                       <span>Subtotal</span>
                       <span>{formatCurrency(subtotal)}</span>
@@ -419,6 +465,14 @@ export default function CaixaPage() {
                     <div className="flex justify-between items-center text-slate-500">
                       <span>Desconto</span>
                       <div className="flex items-center gap-1">
+                        {linkedClient && linkedClient.pontos_fidelidade > 0 && (
+                          <button 
+                            onClick={() => setDiscount(linkedClient.pontos_fidelidade * 0.1)}
+                            className="text-[10px] bg-amber-100 text-amber-700 px-1.5 rounded mr-1 font-bold"
+                          >
+                            Usar Pontos
+                          </button>
+                        )}
                         <span className="text-xs text-slate-300">R$</span>
                         <input
                           type="number"
