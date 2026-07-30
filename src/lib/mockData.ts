@@ -3,13 +3,13 @@ import { Category, Product, GiftBasket, Testimonial, TimelineEvent, StoreSetting
 export const INITIAL_STORE_SETTINGS: StoreSettings = {
   storeName: "Empório Caminho da Fé",
   subtitle: "Sabores de Minas. Presentes para sua caminhada.",
-  whatsappNumber: "5535999887766",
-  whatsappFormatted: "(35) 99988-7766",
+  whatsappNumber: "5511972236957",
+  whatsappFormatted: "(11) 97223-6957",
   instagram: "@emporiocaminhodafe",
   facebook: "emporiocaminhodafe",
   address: "Rua Direita da Serra, 142 - Centro Histórico",
   cityState: "Águas da Prata / Andradas - MG",
-  phone: "(35) 3731-1290",
+  phone: "(11) 97223-6957",
   email: "contato@caminhodafeemporio.com.br",
   businessHours: {
     weekdays: "08:00 - 19:00",

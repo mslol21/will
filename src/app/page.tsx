@@ -8,7 +8,7 @@ import { HeroSection } from "@/sections/home/HeroSection";
 import { CategoriesSection } from "@/sections/home/CategoriesSection";
 import { FeaturedSection } from "@/sections/home/FeaturedSection";
 import { SpecialBaskets } from "@/sections/home/SpecialBaskets";
-import { LocationSection } from "@/sections/home/LocationSection";
+
 
 export default function HomePage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -33,7 +33,7 @@ export default function HomePage() {
         <SpecialBaskets />
 
         {/* 8. Nossa Loja Física & Contato */}
-        <LocationSection />
+
       </main>
 
       {/* Rodapé Institucional Escuro */}

@@ -58,6 +58,7 @@ export interface Product {
   featured?: boolean;
   isPeregrino?: boolean;
   isActive: boolean;
+  validade?: string;
 }
 
 export interface BasketItemChoice {

@@ -87,6 +87,7 @@ export default function AdminPage() {
   const [prodStock, setProdStock] = useState("15");
   const [prodDesc, setProdDesc] = useState("");
   const [prodImage, setProdImage] = useState("");
+  const [prodValidade, setProdValidade] = useState("");
 
   // Category modal
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -193,6 +194,7 @@ export default function AdminPage() {
     setProdCategory(product.category);
     setProdPrice(product.price.toString());
     setProdOriginalPrice(product.originalPrice?.toString() || "");
+    setProdValidade(product.validade || "");
     setProdWeight(product.weight);
     setProdOrigin(product.origin);
     setProdSku(product.sku);
@@ -204,7 +206,7 @@ export default function AdminPage() {
 
   const handleOpenNewProduct = () => {
     setEditingProduct(null);
-    setProdName(""); setProdCategory("queijos"); setProdPrice(""); setProdOriginalPrice("");
+    setProdName(""); setProdCategory("queijos"); setProdPrice(""); setProdOriginalPrice(""); setProdValidade("");
     setProdWeight("500g"); setProdOrigin("Minas Gerais - MG");
     setProdSku(`SKU-${Math.floor(Math.random() * 9000 + 1000)}`);
     setProdStock("15"); setProdDesc(""); setProdImage("");
@@ -229,6 +231,7 @@ export default function AdminPage() {
       image: prodImage || "https://images.unsplash.com/photo-1452195100486-9cc805987862?auto=format&fit=crop&w=1000&q=80",
       badges: [{ type: "novo", label: "Novo" }],
       isActive: true,
+      validade: prodValidade || undefined,
     };
 
     if (editingProduct) {
@@ -606,11 +609,16 @@ export default function AdminPage() {
                   <input type="text" value={prodWeight} onChange={(e) => setProdWeight(e.target.value)} placeholder="500g" className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
                 </div>
                 <div>
+                  <label className="block font-bold text-slate-700 mb-1">Validade:</label>
+                  <input type="date" value={prodValidade} onChange={(e) => setProdValidade(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <label className="block font-bold text-slate-700 mb-1">Origem:</label>
                   <input type="text" value={prodOrigin} onChange={(e) => setProdOrigin(e.target.value)} placeholder="Minas Gerais - MG" className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
                 </div>
-              </div>
-              <div>
+                <div>
                 <label className="block font-bold text-slate-700 mb-1">Foto do Produto:</label>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -635,6 +643,7 @@ export default function AdminPage() {
                   )}
                 </div>
               </div>
+            </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Descrição:</label>
                 <textarea rows={3} value={prodDesc} onChange={(e) => setProdDesc(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
