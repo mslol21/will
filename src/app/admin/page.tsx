@@ -112,8 +112,8 @@ export default function AdminPage() {
           const img = new window.Image();
           img.onload = () => {
             const canvas = document.createElement("canvas");
-            const MAX_WIDTH = 800;
-            const MAX_HEIGHT = 800;
+            const MAX_WIDTH = 400;
+            const MAX_HEIGHT = 400;
             let width = img.width;
             let height = img.height;
 
@@ -133,7 +133,7 @@ export default function AdminPage() {
             const ctx = canvas.getContext("2d");
             if (ctx) {
               ctx.drawImage(img, 0, 0, width, height);
-              const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+              const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
               setter(dataUrl);
             } else {
               setter(reader.result as string);
@@ -265,12 +265,18 @@ export default function AdminPage() {
       validade: prodValidade || undefined,
     };
 
-    if (editingProduct) {
-      const { error } = await updateProduto(editingProduct.id, payload);
-      if (error) { setSaveStatus("error"); return; }
-    } else {
-      const { error } = await insertProduto(payload);
-      if (error) { setSaveStatus("error"); return; }
+    try {
+      if (editingProduct) {
+        const { error } = await updateProduto(editingProduct.id, payload);
+        if (error) { setSaveStatus("error"); return; }
+      } else {
+        const { error } = await insertProduto(payload);
+        if (error) { setSaveStatus("error"); return; }
+      }
+    } catch (err) {
+      console.error("Erro ao salvar produto:", err);
+      setSaveStatus("error");
+      return;
     }
 
     setSaveStatus("saved");
