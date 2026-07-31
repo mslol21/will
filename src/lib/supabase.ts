@@ -79,7 +79,7 @@ export async function getProdutos(): Promise<Product[]> {
 }
 
 export async function insertProduto(p: Partial<Product>) {
-  const { data, error } = await supabase.from("produtos").insert([{
+  const payload: any = {
     slug: p.slug,
     name: p.name,
     short_description: p.shortDescription,
@@ -97,13 +97,18 @@ export async function insertProduto(p: Partial<Product>) {
     review_count: p.reviewCount || 1,
     badges: p.badges || [],
     is_active: p.isActive !== false,
-    validade: p.validade || null,
-  }]).select();
+  };
+  
+  if (p.validade !== undefined) {
+    payload.validade = p.validade || null;
+  }
+
+  const { data, error } = await supabase.from("produtos").insert([payload]).select();
   return { data, error };
 }
 
 export async function updateProduto(id: string, p: Partial<Product>) {
-  const { data, error } = await supabase.from("produtos").update({
+  const payload: any = {
     name: p.name,
     slug: p.slug,
     short_description: p.shortDescription,
@@ -117,8 +122,13 @@ export async function updateProduto(id: string, p: Partial<Product>) {
     sku: p.sku,
     stock: p.stock,
     is_active: p.isActive !== false,
-    validade: p.validade || null,
-  }).eq("id", id).select();
+  };
+
+  if (p.validade !== undefined) {
+    payload.validade = p.validade || null;
+  }
+
+  const { data, error } = await supabase.from("produtos").update(payload).eq("id", id).select();
   return { data, error };
 }
 
