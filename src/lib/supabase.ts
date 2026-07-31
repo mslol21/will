@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
-import type { Product, Category, GiftBasket, LancamentoFinanceiro, PrayerRequest } from "@/types";
+import type { Product, Category, GiftBasket } from "@/types";
 
 export const supabase = createClient();
 
