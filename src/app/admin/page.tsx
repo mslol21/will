@@ -108,7 +108,38 @@ export default function AdminPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === "string") {
-          setter(reader.result);
+          // Resize image to avoid payload too large errors
+          const img = new window.Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height = Math.round((height * MAX_WIDTH) / width);
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width = Math.round((width * MAX_HEIGHT) / height);
+                height = MAX_HEIGHT;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+              setter(dataUrl);
+            } else {
+              setter(reader.result as string);
+            }
+          };
+          img.src = reader.result;
         }
       };
       reader.readAsDataURL(file);
@@ -579,44 +610,44 @@ export default function AdminPage() {
             <form onSubmit={handleSaveProduct} className="space-y-3 text-xs font-montserrat">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Nome do Produto:*</label>
-                <input type="text" required value={prodName} onChange={(e) => setProdName(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                <input type="text" required value={prodName} onChange={(e) => setProdName(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Categoria:</label>
-                  <select value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl">
+                  <select value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400">
                     {categoriesList.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Preço (R$):*</label>
-                  <input type="number" step="0.01" required value={prodPrice} onChange={(e) => setProdPrice(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                  <input type="number" step="0.01" required value={prodPrice} onChange={(e) => setProdPrice(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">SKU:</label>
-                  <input type="text" value={prodSku} onChange={(e) => setProdSku(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                  <input type="text" value={prodSku} onChange={(e) => setProdSku(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400" />
                 </div>
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Estoque Inicial:</label>
-                  <input type="number" value={prodStock} onChange={(e) => setProdStock(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                  <input type="number" value={prodStock} onChange={(e) => setProdStock(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Peso/Volume:</label>
-                  <input type="text" value={prodWeight} onChange={(e) => setProdWeight(e.target.value)} placeholder="500g" className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                  <input type="text" value={prodWeight} onChange={(e) => setProdWeight(e.target.value)} placeholder="500g" className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400" />
                 </div>
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Validade:</label>
-                  <input type="date" value={prodValidade} onChange={(e) => setProdValidade(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                  <input type="date" value={prodValidade} onChange={(e) => setProdValidade(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Origem:</label>
-                  <input type="text" value={prodOrigin} onChange={(e) => setProdOrigin(e.target.value)} placeholder="Minas Gerais - MG" className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                  <input type="text" value={prodOrigin} onChange={(e) => setProdOrigin(e.target.value)} placeholder="Minas Gerais - MG" className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400" />
                 </div>
                 <div>
                 <label className="block font-bold text-slate-700 mb-1">Foto do Produto:</label>
@@ -630,7 +661,7 @@ export default function AdminPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-slate-400 font-bold uppercase shrink-0">Ou URL:</span>
-                    <input type="text" value={prodImage} onChange={(e) => setProdImage(e.target.value)} placeholder="https://images.unsplash.com/..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+                    <input type="text" value={prodImage} onChange={(e) => setProdImage(e.target.value)} placeholder="https://images.unsplash.com/..." className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 text-xs" />
                   </div>
                   {prodImage && (
                     <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mt-2">
@@ -646,7 +677,7 @@ export default function AdminPage() {
             </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Descrição:</label>
-                <textarea rows={3} value={prodDesc} onChange={(e) => setProdDesc(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                <textarea rows={3} value={prodDesc} onChange={(e) => setProdDesc(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400" />
               </div>
               <div className="pt-3 flex justify-end gap-2">
                 <button type="button" onClick={() => setIsProductModalOpen(false)} className="px-4 py-2 rounded-xl border text-slate-600 hover:bg-slate-50">Cancelar</button>
@@ -670,7 +701,7 @@ export default function AdminPage() {
             <form onSubmit={handleSaveCategory} className="space-y-3 text-xs font-montserrat">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Nome da Categoria:*</label>
-                <input type="text" required value={catName} onChange={(e) => setCatName(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                <input type="text" required value={catName} onChange={(e) => setCatName(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400" />
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Foto da Categoria:</label>
@@ -684,7 +715,7 @@ export default function AdminPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-slate-400 font-bold uppercase shrink-0">Ou URL:</span>
-                    <input type="text" value={catImage} onChange={(e) => setCatImage(e.target.value)} placeholder="https://images.unsplash.com/..." className="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+                    <input type="text" value={catImage} onChange={(e) => setCatImage(e.target.value)} placeholder="https://images.unsplash.com/..." className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 text-xs" />
                   </div>
                   {catImage && (
                     <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mt-2">
@@ -699,7 +730,7 @@ export default function AdminPage() {
               </div>
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Descrição:</label>
-                <textarea rows={3} value={catDesc} onChange={(e) => setCatDesc(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border rounded-xl" />
+                <textarea rows={3} value={catDesc} onChange={(e) => setCatDesc(e.target.value)} className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400" />
               </div>
               <div className="pt-3 flex justify-end gap-2">
                 <button type="button" onClick={() => setIsCategoryModalOpen(false)} className="px-4 py-2 rounded-xl border text-slate-600 hover:bg-slate-50">Cancelar</button>

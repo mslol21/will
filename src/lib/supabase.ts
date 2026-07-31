@@ -74,6 +74,7 @@ export async function getProdutos(): Promise<Product[]> {
     reviewCount: p.review_count || 0,
     badges: p.badges || [],
     isActive: p.is_active !== false,
+    validade: p.validade || undefined,
   }));
 }
 
@@ -96,6 +97,7 @@ export async function insertProduto(p: Partial<Product>) {
     review_count: p.reviewCount || 1,
     badges: p.badges || [],
     is_active: p.isActive !== false,
+    validade: p.validade || null,
   }]).select();
   return { data, error };
 }
@@ -115,6 +117,7 @@ export async function updateProduto(id: string, p: Partial<Product>) {
     sku: p.sku,
     stock: p.stock,
     is_active: p.isActive !== false,
+    validade: p.validade || null,
   }).eq("id", id).select();
   return { data, error };
 }
