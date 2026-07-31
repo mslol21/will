@@ -277,6 +277,123 @@ export async function updateCliente(id: string, cliente: any) {
   return { data, error };
 }
 
+// ─── FORNECEDORES ──────────────────────────────────────────────
+export async function getFornecedores() {
+  const { data, error } = await supabase
+    .from("fornecedores")
+    .select("*")
+    .order("nome_fantasia");
+  
+  if (data) {
+    return data.map(f => ({
+      id: f.id,
+      nomeFantasia: f.nome_fantasia,
+      razaoSocial: f.razao_social,
+      cnpj: f.cnpj,
+      email: f.email,
+      telefone: f.telefone,
+      endereco: f.endereco,
+      createdAt: f.created_at,
+    }));
+  }
+  return [];
+}
+
+export async function insertFornecedor(f: any) {
+  const { data, error } = await supabase.from("fornecedores").insert([{
+    nome_fantasia: f.nomeFantasia,
+    razao_social: f.razaoSocial,
+    cnpj: f.cnpj,
+    email: f.email,
+    telefone: f.telefone,
+    endereco: f.endereco,
+  }]).select();
+  return { data, error };
+}
+
+// ─── COMPRAS ─────────────────────────────────────────────────
+export async function getPedidosCompra() {
+  const { data, error } = await supabase
+    .from("pedidos_compra")
+    .select(`
+      *,
+      fornecedor:fornecedores (*),
+      itens:itens_pedido_compra (*)
+    `)
+    .order("created_at", { ascending: false });
+  return { data: data || [], error };
+}
+
+export async function insertPedidoCompra(pedido: any, itens: any[]) {
+  const { data: pedidoData, error: pedidoError } = await supabase
+    .from("pedidos_compra")
+    .insert([{
+      fornecedor_id: pedido.fornecedorId,
+      status: "pendente",
+      valor_total: pedido.valorTotal,
+    }])
+    .select()
+    .single();
+
+  if (pedidoError || !pedidoData) return { error: pedidoError };
+
+  const itensPayload = itens.map(i => ({
+    pedido_compra_id: pedidoData.id,
+    produto_id: i.produtoId,
+    quantidade: i.quantidade,
+    custo_unitario: i.custoUnitario,
+  }));
+
+  const { error: itensError } = await supabase
+    .from("itens_pedido_compra")
+    .insert(itensPayload);
+
+  return { data: pedidoData, error: itensError };
+}
+
+export async function receberPedidoCompra(pedidoId: string) {
+  // 1. Marcar como recebido
+  const { data: pedido, error: pedidoError } = await supabase
+    .from("pedidos_compra")
+    .update({ status: "recebido", data_recebimento: new Date().toISOString() })
+    .eq("id", pedidoId)
+    .select("*, itens:itens_pedido_compra(*)")
+    .single();
+
+  if (pedidoError || !pedido) return { error: pedidoError };
+
+  // 2. Dar entrada no estoque
+  for (const item of pedido.itens) {
+    const { data: produto } = await supabase
+      .from("produtos")
+      .select("stock, custo_medio")
+      .eq("id", item.produto_id)
+      .single();
+
+    if (produto) {
+      const newStock = produto.stock + item.quantidade;
+      const currentTotalCost = produto.stock * (produto.custo_medio || 0);
+      const addedCost = item.quantidade * item.custo_unitario;
+      const newCustoMedio = newStock > 0 ? (currentTotalCost + addedCost) / newStock : 0;
+
+      await supabase.from("produtos").update({
+        stock: newStock,
+        custo_medio: newCustoMedio
+      }).eq("id", item.produto_id);
+    }
+  }
+
+  // 3. Lançamento Financeiro Automático
+  await insertLancamento({
+    tipo: "despesa",
+    descricao: `Compra de Fornecedor (Pedido #${pedidoId.substring(0,8)})`,
+    valor: pedido.valor_total,
+    categoria: "Fornecedores"
+  });
+
+  return { data: pedido };
+}
+
 // ─── AUTOMATIC SEED ──────────────────────────────────────────
 import { CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 

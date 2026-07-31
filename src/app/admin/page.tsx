@@ -37,6 +37,7 @@ import { StockView } from "@/components/admin/StockView";
 import { FinanceView } from "@/components/admin/FinanceView";
 import { VirtualAssistant } from "@/components/admin/VirtualAssistant";
 import { CrmView } from "@/components/admin/CrmView";
+import { ComprasView } from "@/components/admin/ComprasView";
 import {
   getProdutos,
   insertProduto,
@@ -57,7 +58,7 @@ import { Zap, Keyboard, ExternalLink, RefreshCw, Upload } from "lucide-react";
 
 const MEI_ANNUAL_LIMIT = 81000.0;
 
-type Tab = "dashboard" | "produtos" | "categorias" | "estoque" | "financeiro" | "crm" | "oracoes" | "configuracoes";
+type Tab = "dashboard" | "produtos" | "categorias" | "estoque" | "financeiro" | "crm" | "oracoes" | "configuracoes" | "compras";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
@@ -368,7 +369,8 @@ export default function AdminPage() {
             ["categorias", Layers, `Categorias (${categoriesList.length})`],
             ["estoque", BarChart3, "Controle de Estoque"],
             ["financeiro", Calculator, "Financeiro & MEI"],
-            ["crm", Users, "CRM & Clientes"],
+            ["crm", Users, "CRM (Clientes)"],
+            ["compras", Package, "Compras & Fornecedores"],
             ["oracoes", Heart, `Pedidos de Oração (${oracoes.length})`],
           ] as [Tab, any, string][]).map(([tab, Icon, label]) => (
             <button
@@ -448,6 +450,11 @@ export default function AdminPage() {
               meiUsed={meiUsed}
               meiRemaining={meiRemaining}
             />
+          )}
+
+          {/* COMPRAS */}
+          {activeTab === "compras" && (
+            <ComprasView productsList={productsList} />
           )}
 
           {/* PRODUTOS */}

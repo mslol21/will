@@ -59,6 +59,7 @@ export interface Product {
   isPeregrino?: boolean;
   isActive: boolean;
   validade?: string;
+  custoMedio?: number;
 }
 
 export interface BasketItemChoice {
@@ -119,6 +120,47 @@ export interface StoreSettings {
   googleMapsDirectUrl: string;
   metaPixelId?: string;
   googleAnalyticsId?: string;
+}
+
+export interface ContatoMensagem {
+  id: string;
+  nome: string;
+  email: string;
+  mensagem: string;
+  dataEnvio: string;
+}
+
+// Fase 6: Compras e Fornecedores
+export interface Fornecedor {
+  id: string;
+  nomeFantasia: string;
+  razaoSocial?: string;
+  cnpj?: string;
+  email?: string;
+  telefone?: string;
+  endereco?: string;
+  createdAt: string;
+}
+
+export interface ItemPedidoCompra {
+  id: string;
+  pedidoCompraId: string;
+  produtoId: string;
+  quantidade: number;
+  custoUnitario: number;
+}
+
+export interface PedidoCompra {
+  id: string;
+  fornecedorId: string;
+  responsavelId?: string;
+  status: "pendente" | "recebido" | "cancelado";
+  valorTotal: number;
+  dataPedido: string;
+  dataRecebimento?: string;
+  createdAt: string;
+  fornecedor?: Fornecedor;
+  itens?: ItemPedidoCompra[];
 }
 
 export interface Cliente {
