@@ -18,7 +18,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductDetailModal } from "@/components/product/ProductDetailModal";
-import { MOCK_PRODUCTS, CATEGORIES } from "@/lib/mockData";
+import { getProdutos, getCategorias } from "@/lib/supabase";
 import { Product, CategoryId } from "@/types";
 import { useFavorites } from "@/hooks/useFavorites";
 
@@ -37,9 +37,24 @@ function CatalogContent() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { favorites } = useFavorites();
 
+  const [productsList, setProductsList] = useState<Product[]>([]);
+  const [categoriesList, setCategoriesList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      const [prods, cats] = await Promise.all([getProdutos(), getCategorias()]);
+      setProductsList(prods);
+      setCategoriesList(cats);
+      setIsLoading(false);
+    }
+    loadData();
+  }, []);
+
   // Filtered & Sorted Products
   const filteredProducts = useMemo(() => {
-    return MOCK_PRODUCTS.filter((product) => {
+    return productsList.filter((product) => {
       // Category Filter
       if (selectedCategory !== "todas" && product.category !== selectedCategory) {
         return false;
@@ -163,22 +178,21 @@ function CatalogContent() {
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
-              Todas as Categorias ({MOCK_PRODUCTS.length})
+              Todas as Categorias ({productsList.length})
             </button>
 
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 ${
-                  selectedCategory === cat.id
-                    ? "bg-emporio-gold text-emporio-navy shadow-gold"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
+              {categoriesList.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id as CategoryId)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap
+                    ${selectedCategory === cat.id 
+                      ? "bg-[#8B5E34] text-white shadow-sm" 
+                      : "bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800"}`}
+                >
+                  {cat.name}
+                </button>
+              ))}
           </div>
         </div>
 
@@ -201,24 +215,34 @@ function CatalogContent() {
         </div>
 
         {/* Products Grid */}
-        {filteredProducts.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-emporio-gold/20 shadow-card">
-            <Sparkles className="w-10 h-10 text-emporio-gold mx-auto mb-3 opacity-70" />
-            <h3 className="font-playfair text-xl font-bold text-emporio-navy mb-2">
-              Nenhum produto encontrado
-            </h3>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Tente alterar os termos da busca ou selecione outra categoria de produtos.
-            </p>
+        {isLoading ? (
+          <div className="py-20 text-center text-slate-400">
+            <div className="inline-block animate-spin w-8 h-8 border-4 border-slate-200 border-t-[#8B5E34] rounded-full mb-4"></div>
+            <p>Carregando produtos...</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="py-20 text-center bg-white rounded-3xl border border-slate-100 shadow-sm">
+            <p className="text-slate-500 mb-2">Nenhum produto encontrado com estes filtros.</p>
+            <button 
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedCategory("todas");
+                setShowFavoritesOnly(false);
+                setSelectedBadge("todos");
+              }}
+              className="text-[#8B5E34] font-bold text-sm hover:underline"
+            >
+              Limpar todos os filtros
+            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+            {filteredProducts.map((product, idx) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.4, delay: idx * 0.05 }}
               >
                 <ProductCard
                   product={product}

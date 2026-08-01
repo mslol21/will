@@ -4,7 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { MOCK_PRODUCTS } from "@/lib/mockData";
+import { useEffect } from "react";
+import { getProdutos } from "@/lib/supabase";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductDetailModal } from "@/components/product/ProductDetailModal";
 import { Product } from "@/types";
@@ -13,7 +14,17 @@ import { Sparkles, Heart, Cross, Shield } from "lucide-react";
 export function PeregrinoSection() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const peregrinoProducts = MOCK_PRODUCTS.filter((p) => p.isPeregrino || p.category === "peregrino");
+  const [peregrinoProducts, setPeregrinoProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const data = await getProdutos();
+      setPeregrinoProducts(data.filter(p => p.category === "peregrino"));
+      setIsLoading(false);
+    }
+    load();
+  }, []);
 
   return (
     <section id="peregrino" className="py-24 bg-emporio-beige relative overflow-hidden">
@@ -80,23 +91,33 @@ export function PeregrinoSection() {
           </div>
         </div>
 
-        {/* Peregrino Products */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {peregrinoProducts.map((product, idx) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.1 }}
-            >
-              <ProductCard
-                product={product}
-                onQuickView={(p) => setSelectedProduct(p)}
-              />
-            </motion.div>
-          ))}
-        </div>
+        {/* Products Grid */}
+        {isLoading ? (
+          <div className="py-10 text-center text-slate-400">
+            Carregando produtos da linha Peregrino...
+          </div>
+        ) : peregrinoProducts.length === 0 ? (
+          <div className="py-10 text-center text-slate-500">
+            Nenhum produto da linha Peregrino disponível no momento.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {peregrinoProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+              >
+                <ProductCard
+                  product={product}
+                  onQuickView={(p) => setSelectedProduct(p)}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
 
       </div>
 

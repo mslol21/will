@@ -3,11 +3,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { MOCK_GIFT_BASKETS, INITIAL_STORE_SETTINGS } from "@/lib/mockData";
+import { useState, useEffect } from "react";
+import { INITIAL_STORE_SETTINGS } from "@/lib/mockData";
+import { getCestas } from "@/lib/supabase";
+import { GiftBasket } from "@/types";
 import { formatCurrency, createWhatsAppLink } from "@/lib/utils";
 import { Gift, CheckCircle2, MessageCircle, Sparkles, Wand2 } from "lucide-react";
 
 export function SpecialBaskets() {
+  const [baskets, setBaskets] = useState<GiftBasket[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      const data = await getCestas();
+      // Only show available featured baskets (limit to 3 for design)
+      setBaskets(data.filter(c => c.available).slice(0, 3));
+    }
+    load();
+  }, []);
+
   return (
     <section className="py-24 bg-emporio-navy text-white relative overflow-hidden">
       {/* Background Subtle Ornaments */}
@@ -31,7 +45,11 @@ export function SpecialBaskets() {
 
         {/* Baskets Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-          {MOCK_GIFT_BASKETS.map((basket, index) => {
+          {baskets.length === 0 ? (
+            <div className="col-span-3 py-10 text-center text-slate-400">
+              Carregando cestas exclusivas...
+            </div>
+          ) : baskets.map((basket, index) => {
             const whatsappMsg = `Olá! Tenho interesse na *${basket.name}* (${formatCurrency(basket.price)}). Como funciona para colocar um cartão de mensagem personalizado?`;
             const whatsappUrl = createWhatsAppLink(INITIAL_STORE_SETTINGS.whatsappNumber, whatsappMsg);
 

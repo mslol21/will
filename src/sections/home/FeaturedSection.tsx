@@ -1,85 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ShoppingBag, Check, Sparkles } from "lucide-react";
+import { ShoppingBag, Check, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
-
-interface KitItem {
-  id: string;
-  slug: string;
-  title: string;
-  description: string;
-  price: number;
-  image: string;
-}
-
-const KITS: KitItem[] = [
-  {
-    id: "kit-1",
-    slug: "cesta-cafe-mineiro",
-    title: "Cesta Café Mineiro",
-    description: "Café especial moído 500g, broa de milho artesanal e biscoito de polvilho caipira.",
-    price: 120.0,
-    image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "kit-2",
-    slug: "cesta-sabores-de-minas",
-    title: "Cesta Sabores de Minas",
-    description: "Queijo Canastra artesanal peça inteira, doce de leite no tacho de cobre e mel silvestre.",
-    price: 180.0,
-    image: "https://images.unsplash.com/photo-1452195100486-9cc805987862?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "kit-3",
-    slug: "cesta-peregrino",
-    title: "Cesta Peregrino",
-    description: "Terço em madeira imbuia, caneca esmaltada ágata, café gourmet e vela de cera de abelha.",
-    price: 150.0,
-    image: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "kit-4",
-    slug: "cesta-premium-mantiqueira",
-    title: "Cesta Premium Mantiqueira",
-    description: "Vinho Syrah de altitude 750ml, queijo maturado 45 dias, geleia de pimenta e baú de madeira.",
-    price: 250.0,
-    image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80",
-  },
-];
+import { getProdutos } from "@/lib/supabase";
+import { Product } from "@/types";
 
 export function FeaturedSection() {
-  const { addItem } = useCart();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
+  const { addItem } = useCart();
 
-  const handleAddToCart = (kit: KitItem) => {
-    addItem({
-      id: kit.id,
-      slug: kit.slug,
-      name: kit.title,
-      shortDescription: kit.description,
-      fullDescription: kit.description,
-      price: kit.price,
-      category: "cestas",
-      image: kit.image,
-      gallery: [kit.image],
-      weight: "1.2kg",
-      origin: "Minas Gerais",
-      sku: `KIT-${kit.id}`,
-      stock: 10,
-      rating: 5,
-      reviewCount: 12,
-      badges: [{ type: "mais-vendido", label: "Kit Especial" }],
-      isActive: true,
-    });
+  useEffect(() => {
+    async function load() {
+      const data = await getProdutos();
+      setFeaturedProducts(data.filter(p => p.featured && p.isActive).slice(0, 4));
+      setIsLoading(false);
+    }
+    load();
+  }, []);
 
-    setAddedItems((prev) => ({ ...prev, [kit.id]: true }));
+  const handleAddToCart = (product: Product) => {
+    addItem(product, 1);
+    setAddedItems((prev) => ({ ...prev, [product.id]: true }));
     setTimeout(() => {
-      setAddedItems((prev) => ({ ...prev, [kit.id]: false }));
+      setAddedItems((prev) => ({ ...prev, [product.id]: false }));
     }, 2000);
   };
 
@@ -90,88 +40,94 @@ export function FeaturedSection() {
         {/* Título da Seção */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="inline-block px-3.5 py-1.5 rounded-full bg-[#8B5E34]/15 text-[#8B5E34] text-xs font-bold uppercase tracking-widest font-montserrat mb-3">
-            Presentes Afetuosos
+            Nossos Destaques
           </span>
           <h2 className="font-playfair text-3xl sm:text-5xl font-bold text-[#1F2A44] mb-4">
-            Kits e Cestas Especiais
+            Produtos em Destaque
           </h2>
           <p className="font-montserrat text-sm sm:text-base text-[#2E2E2E] leading-relaxed font-normal">
-            Seleções cuidadosamente montadas em caixas kraft e baús artesanais para surpreender quem você ama.
+            Os itens mais queridos e procurados do nosso empório.
           </p>
         </div>
 
-        {/* Grid Responsivo de 4 Colunas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {KITS.map((kit, index) => (
-            <motion.div
-              key={kit.id}
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group bg-white rounded-3xl overflow-hidden border border-[#D2B48C] shadow-card hover:shadow-2xl transition-all duration-300 flex flex-col justify-between"
-            >
-              <div>
-                {/* Imagem do Card */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#F2ECE2]">
+        {/* Grid de Produtos */}
+        {isLoading ? (
+          <div className="py-20 text-center text-slate-400">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+            <p>Carregando destaques...</p>
+          </div>
+        ) : featuredProducts.length === 0 ? (
+          <div className="py-20 text-center text-slate-500">
+            <p>Nenhum produto em destaque no momento.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {featuredProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="bg-white rounded-3xl overflow-hidden shadow-card hover:shadow-2xl transition-all duration-300 flex flex-col group border border-[#D2B48C]/20"
+              >
+                <Link href={`/produtos/${product.slug}`} className="relative aspect-[4/3] overflow-hidden block bg-[#F2ECE2]">
                   <Image
-                    src={kit.image}
-                    alt={kit.title}
+                    src={product.image}
+                    alt={product.name}
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute top-3 right-3 bg-[#1F2A44]/90 backdrop-blur-md text-[#D2B48C] text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border border-[#D2B48C]/30 font-montserrat">
-                    Edição Especial
+                </Link>
+
+                {/* Conteúdo do Card */}
+                <div className="p-5 flex-grow flex flex-col justify-between space-y-2">
+                  <div>
+                    <Link href={`/produtos/${product.slug}`}>
+                      <h3 className="font-playfair font-bold text-lg text-[#1F2A44] group-hover:text-[#8B5E34] transition-colors line-clamp-1">
+                        {product.name}
+                      </h3>
+                    </Link>
+                    <p className="font-montserrat text-xs text-[#2E2E2E] line-clamp-2 leading-relaxed font-normal mt-2">
+                      {product.shortDescription}
+                    </p>
                   </div>
                 </div>
 
-                {/* Conteúdo do Card */}
-                <div className="p-5 space-y-2">
-                  <h3 className="font-playfair font-bold text-lg text-[#1F2A44] group-hover:text-[#8B5E34] transition-colors">
-                    {kit.title}
-                  </h3>
-                  <p className="font-montserrat text-xs text-[#2E2E2E] line-clamp-2 leading-relaxed font-normal">
-                    {kit.description}
-                  </p>
+                {/* Preço e Botão Adicionar ao Carrinho */}
+                <div className="p-5 pt-0 space-y-4">
+                  <div className="pt-3 border-t border-slate-100 flex items-baseline justify-between">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 font-montserrat">Valor:</span>
+                    <span className="font-playfair text-2xl font-bold text-[#1F2A44]">
+                      {formatCurrency(product.price)}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className={`w-full py-3 px-4 rounded-2xl font-montserrat font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm ${
+                      addedItems[product.id]
+                        ? "bg-emerald-600 text-white"
+                        : "bg-[#8B5E34] hover:bg-[#1F2A44] text-white"
+                    }`}
+                  >
+                    {addedItems[product.id] ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>Adicionado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag className="w-4 h-4 text-[#D2B48C]" />
+                        <span>Adicionar</span>
+                      </>
+                    )}
+                  </button>
                 </div>
-              </div>
-
-              {/* Preço e Botão Adicionar ao Carrinho */}
-              <div className="p-5 pt-0 space-y-4">
-                <div className="pt-3 border-t border-slate-100 flex items-baseline justify-between">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 font-montserrat">Valor:</span>
-                  <span className="font-playfair text-2xl font-bold text-[#1F2A44]">
-                    {formatCurrency(kit.price)}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => handleAddToCart(kit)}
-                  className={`w-full py-3 px-4 rounded-2xl font-montserrat font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm ${
-                    addedItems[kit.id]
-                      ? "bg-emerald-600 text-white"
-                      : "bg-[#8B5E34] hover:bg-[#1F2A44] text-white"
-                  }`}
-                >
-                  {addedItems[kit.id] ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>Adicionado!</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="w-4 h-4 text-[#D2B48C]" />
-                      <span>Adicionar ao Carrinho</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-            </motion.div>
-          ))}
-        </div>
-
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

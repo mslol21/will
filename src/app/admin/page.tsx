@@ -38,6 +38,7 @@ import { FinanceView } from "@/components/admin/FinanceView";
 import { VirtualAssistant } from "@/components/admin/VirtualAssistant";
 import { CrmView } from "@/components/admin/CrmView";
 import { ComprasView } from "@/components/admin/ComprasView";
+import { CestasView } from "@/components/admin/CestasView";
 import {
   getProdutos,
   insertProduto,
@@ -50,7 +51,6 @@ import {
   insertLancamento,
   deleteLancamento,
   getPrayerRequests,
-  seedAllMockDataToSupabase,
 } from "@/lib/supabase";
 import { Product, Category } from "@/types";
 import { formatCurrency, slugify } from "@/lib/utils";
@@ -58,7 +58,7 @@ import { Zap, Keyboard, ExternalLink, RefreshCw, Upload } from "lucide-react";
 
 const MEI_ANNUAL_LIMIT = 81000.0;
 
-type Tab = "dashboard" | "produtos" | "categorias" | "estoque" | "financeiro" | "crm" | "oracoes" | "configuracoes" | "compras";
+type Tab = "dashboard" | "produtos" | "categorias" | "estoque" | "financeiro" | "crm" | "oracoes" | "configuracoes" | "compras" | "cestas";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
@@ -167,26 +167,6 @@ export default function AdminPage() {
     loadData();
   }, [loadData]);
 
-
-
-  const [isSeeding, setIsSeeding] = useState(false);
-
-  const handleSeedDatabase = async () => {
-    if (!confirm("Deseja implantar todos os produtos e categorias seeds no banco de dados Supabase?")) return;
-    setIsSeeding(true);
-    setSaveStatus("saving");
-    try {
-      await seedAllMockDataToSupabase();
-      setSaveStatus("saved");
-      setTimeout(() => setSaveStatus(""), 2000);
-      await loadData();
-    } catch (err) {
-      console.error(err);
-      setSaveStatus("error");
-    } finally {
-      setIsSeeding(false);
-    }
-  };
 
   // Teclas de atalho (Alt + 1..5, Alt+N, Alt+P)
   useEffect(() => {
@@ -367,6 +347,7 @@ export default function AdminPage() {
             ["dashboard", LayoutDashboard, "Dashboard"],
             ["produtos", Package, `Produtos (${productsList.length})`],
             ["categorias", Layers, `Categorias (${categoriesList.length})`],
+            ["cestas", Gift, "Kits & Cestas"],
             ["estoque", BarChart3, "Controle de Estoque"],
             ["financeiro", Calculator, "Financeiro & MEI"],
             ["crm", Users, "CRM (Clientes)"],
@@ -423,16 +404,6 @@ export default function AdminPage() {
                 <Layers className="w-3.5 h-3.5" />
                 <span>Nova Categoria</span>
               </button>
-
-              <button
-                onClick={handleSeedDatabase}
-                disabled={isSeeding}
-                className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50"
-                title="Implantar todos os produtos e categorias seeds no Supabase"
-              >
-                <Database className="w-3.5 h-3.5 text-emerald-600" />
-                <span>{isSeeding ? "Implantando..." : "Implantar Seeds no Banco"}</span>
-              </button>
             </div>
 
             <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium">
@@ -450,6 +421,11 @@ export default function AdminPage() {
               meiUsed={meiUsed}
               meiRemaining={meiRemaining}
             />
+          )}
+
+          {/* CESTAS */}
+          {activeTab === "cestas" && (
+            <CestasView />
           )}
 
           {/* COMPRAS */}

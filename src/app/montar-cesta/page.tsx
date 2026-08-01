@@ -23,7 +23,9 @@ import {
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useCart, ContainerType } from "@/hooks/useCart";
-import { MOCK_PRODUCTS, INITIAL_STORE_SETTINGS } from "@/lib/mockData";
+import { INITIAL_STORE_SETTINGS } from "@/lib/mockData";
+import { getProdutos, getCategorias } from "@/lib/supabase";
+import { Product } from "@/types";
 import { formatCurrency, createWhatsAppLink } from "@/lib/utils";
 
 const CONTAINERS: { id: ContainerType; name: string; price: number; description: string; image: string }[] = [
@@ -54,6 +56,20 @@ export default function MontarCestaPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [categoryFilter, setCategoryFilter] = useState<string>("todos");
   
+  const [productsList, setProductsList] = useState<Product[]>([]);
+  const [categoriesList, setCategoriesList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const [prods, cats] = await Promise.all([getProdutos(), getCategorias()]);
+      setProductsList(prods.filter(p => p.isActive));
+      setCategoriesList(cats);
+      setIsLoading(false);
+    }
+    load();
+  }, []);
+  
   const {
     basket,
     addItem,
@@ -81,8 +97,8 @@ export default function MontarCestaPage() {
   };
 
   const filteredProducts = categoryFilter === "todos"
-    ? MOCK_PRODUCTS
-    : MOCK_PRODUCTS.filter((p) => p.category === categoryFilter);
+    ? productsList
+    : productsList.filter((p) => p.category === categoryFilter);
 
   return (
     <div className="min-h-screen bg-emporio-beige flex flex-col">
@@ -250,46 +266,19 @@ export default function MontarCestaPage() {
                       >
                         Todos
                       </button>
-                      <button
-                        onClick={() => setCategoryFilter("queijos")}
-                        className={`px-3 py-1.5 rounded-full font-medium transition-colors shrink-0 ${
-                          categoryFilter === "queijos"
-                            ? "bg-emporio-gold text-emporio-navy font-bold"
-                            : "bg-white text-slate-600 border border-slate-200"
-                        }`}
-                      >
-                        Queijos
-                      </button>
-                      <button
-                        onClick={() => setCategoryFilter("cafes")}
-                        className={`px-3 py-1.5 rounded-full font-medium transition-colors shrink-0 ${
-                          categoryFilter === "cafes"
-                            ? "bg-emporio-gold text-emporio-navy font-bold"
-                            : "bg-white text-slate-600 border border-slate-200"
-                        }`}
-                      >
-                        Cafés
-                      </button>
-                      <button
-                        onClick={() => setCategoryFilter("doces")}
-                        className={`px-3 py-1.5 rounded-full font-medium transition-colors shrink-0 ${
-                          categoryFilter === "doces"
-                            ? "bg-emporio-gold text-emporio-navy font-bold"
-                            : "bg-white text-slate-600 border border-slate-200"
-                        }`}
-                      >
-                        Doces
-                      </button>
-                      <button
-                        onClick={() => setCategoryFilter("peregrino")}
-                        className={`px-3 py-1.5 rounded-full font-medium transition-colors shrink-0 ${
-                          categoryFilter === "peregrino"
-                            ? "bg-emporio-gold text-emporio-navy font-bold"
-                            : "bg-white text-slate-600 border border-slate-200"
-                        }`}
-                      >
-                        Peregrino
-                      </button>
+                      {categoriesList.map(cat => (
+                        <button
+                          key={cat.id}
+                          onClick={() => setCategoryFilter(cat.id)}
+                          className={`px-3 py-1.5 rounded-full font-medium transition-colors shrink-0 ${
+                            categoryFilter === cat.id
+                              ? "bg-emporio-gold text-emporio-navy font-bold"
+                              : "bg-white text-slate-600 border border-slate-200"
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      ))}
                     </div>
                   </div>
 

@@ -394,6 +394,68 @@ export async function receberPedidoCompra(pedidoId: string) {
   return { data: pedido };
 }
 
+// ─── CESTAS & KITS ─────────────────────────────────────────────
+export async function getCestas(): Promise<GiftBasket[]> {
+  const { data, error } = await supabase
+    .from("cestas")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) { console.error("getCestas:", error); return []; }
+  return (data || []).map((c: any) => ({
+    id: c.id,
+    slug: c.slug,
+    name: c.name,
+    description: c.description || "",
+    price: parseFloat(c.price),
+    originalPrice: c.original_price ? parseFloat(c.original_price) : undefined,
+    image: c.image || "",
+    includedItems: c.included_items || [],
+    containerType: c.container_type || "caixa-kraft",
+    isCustomizable: false,
+    available: c.available !== false,
+  }));
+}
+
+export async function insertCesta(c: Partial<GiftBasket>) {
+  const payload: any = {
+    slug: c.slug,
+    name: c.name,
+    description: c.description,
+    price: c.price,
+    original_price: c.originalPrice || null,
+    image: c.image,
+    included_items: c.includedItems || [],
+    container_type: c.containerType,
+    available: c.available !== false,
+  };
+  const { data, error } = await supabase.from("cestas").insert([payload]).select();
+  return { data, error };
+}
+
+export async function updateCesta(id: string, c: Partial<GiftBasket>) {
+  const payload: any = {
+    slug: c.slug,
+    name: c.name,
+    description: c.description,
+    price: c.price,
+    original_price: c.originalPrice || null,
+    image: c.image,
+    included_items: c.includedItems,
+    container_type: c.containerType,
+    available: c.available,
+  };
+  // Remove undefined fields
+  Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+  
+  const { data, error } = await supabase.from("cestas").update(payload).eq("id", id).select();
+  return { data, error };
+}
+
+export async function deleteCesta(id: string) {
+  const { error } = await supabase.from("cestas").delete().eq("id", id);
+  return { error };
+}
+
 // ─── AUTOMATIC SEED ──────────────────────────────────────────
 import { CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 
