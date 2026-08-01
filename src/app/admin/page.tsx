@@ -30,6 +30,7 @@ import {
   MessageCircle,
   Database,
   Users,
+  Gift,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { DashboardView } from "@/components/admin/DashboardView";
